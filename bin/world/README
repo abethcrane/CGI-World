@@ -1,0 +1,27 @@
+== Extensions ==
+I have implemented the following extensions:
+1. Add an avatar and make the camera follow behind the avatar in a 3rd person view (2 marks)
+2. Add a 'night' mode with low ambient lighting. Give the player a torch which shines in the direction they are facing. (2 marks)
+3. Make the sun move and change colour according to the time of day (2 marks)
+4. Add rain using particle effects (4 marks)
+
+1. Can be found in PersonCamera and Person. The PersonCamera updates the Person when it moves.
+2. Can be found in Game.display and Helpers. Helpers updates the day and night, and Game sets the lights appropriately
+3. Can be found in Sky (Stars and Sun too), Game and Helpers. Helpers calculates the time of day and the background colour. 
+    Sun updates its position depending on the time left in day (interpolates between the two angles). 
+    Stars are drawn at night, the percentage increases towards midnight and decreases afterwards.
+    The light follows the sun, as seen in Game.display
+4. Can be found in Sky, Cloud and Raindrop. Clouds have raindrops attached to them, and draws them unless they touch the ground/go beneath 0.
+    The particles movement adjustment can be found in Raindrop.
+      
+== Cameras ==
+As well as a person camera, I have a drone camera available by pressing 'd' and controlled with the mouse. 'p' switches back to person camera.
+'s' zooms out, 'w' zooms in in drone mode, or tilts up and down in person mode.
+'.' increases the speed of the forward/zoom, and ',' slows it down.
+
+== Terrain ==
+I've textured the terrain, although I prefer it with the colors. You can toggle between the two with 't'.
+
+== Day/Night Mode ==
+I only recently was told that we should add key toggles for extensions. I've added in 'n' to toggle day night mode on and off.
+It starts on by default, but can be toggled on and off at any point. When toggling it off the sun resets to the position from the map.

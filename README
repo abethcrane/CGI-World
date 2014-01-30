@@ -1,0 +1,17 @@
+This project was created solely by @abethcrane for UNSW’s COMP3421; Computer Graphics course in 2013. 
+
+== Cameras ==
+The world can be explored as an avatar or as a drone. Pressing p’ switches to the avatar (person mode) and ‘d’ switches the drone (drone mode). In person mode the arrow keys are used to navigate, whereas in drone mode the mouse can be used to swivel around the world.
+
+The following controls apply to both cameras;
+'s' zooms out, 'w' zooms in in drone mode, or tilts up and down in person mode.
+'.' increases the speed of the forward/zoom, and ',' slows it down.
+
+== Terrain ==
+I've textured the terrain, although I prefer it with the colors. You can toggle between the two with 't'.
+
+== Day/Night Mode ==
+By default the sun will travel through the sky, causing a day and a night cycle. This mode can be toggled on and off at any point with the ’n’ key. When toggling it off the sun resets to the position from the passed in map.
+
+== Trees ==
+The trees are designed to look to be reminiscent of Dr Seuss style trees, rather than a realistic representation.
