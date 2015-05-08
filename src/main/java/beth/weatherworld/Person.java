@@ -1,6 +1,6 @@
-package ass2;
+package beth.weatherworld;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 // Very simple avatar. Currently just a rectangle rotated and transitioned to where the camera is looking.
 public class Person extends Sphere {

@@ -1,4 +1,4 @@
-package ass2;
+package beth.weatherworld;
 
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -17,17 +17,17 @@ import java.util.Random;
 import java.util.Vector;
 import java.lang.Object.*;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLProfile;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 
-import ass2.Texture;
+import beth.weatherworld.Texture;
 
 /**
  * COMMENT: Comment HeightMap 

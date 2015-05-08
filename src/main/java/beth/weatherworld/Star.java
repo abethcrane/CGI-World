@@ -1,8 +1,8 @@
-package ass2;
+package beth.weatherworld;
 
 import java.util.Random;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 // A specific type of sphere, drawn within a random area

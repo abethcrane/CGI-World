@@ -1,4 +1,4 @@
-package ass2;
+package beth.weatherworld;
 
 // Color class for easy passing in and referencing of colors
 public class Color {

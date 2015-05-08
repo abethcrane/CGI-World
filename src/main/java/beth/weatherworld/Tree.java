@@ -1,19 +1,19 @@
-package ass2;
+package beth.weatherworld;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.GLUquadric;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.glu.GLUquadric;
 
 import com.jogamp.opengl.util.gl2.GLUT;
 
-import ass2.Texture;
+import beth.weatherworld.Texture;
 
 /**
  * COMMENT: Comment Tree 

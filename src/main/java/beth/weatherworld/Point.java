@@ -1,4 +1,4 @@
-package ass2;
+package beth.weatherworld;
 
 // Basic point/vector class
 public class Point {

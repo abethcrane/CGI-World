@@ -1,14 +1,14 @@
-package ass2;
+package beth.weatherworld;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.gl2.GLUgl2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;

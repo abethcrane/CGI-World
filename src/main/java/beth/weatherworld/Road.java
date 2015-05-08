@@ -1,9 +1,9 @@
-package ass2;
+package beth.weatherworld;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 /**
  * COMMENT: Comment Road

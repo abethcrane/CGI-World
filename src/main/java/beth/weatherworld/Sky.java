@@ -1,11 +1,11 @@
-package ass2;
+package beth.weatherworld;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 // Contains the sun, stars, clouds and rain
 public class Sky {

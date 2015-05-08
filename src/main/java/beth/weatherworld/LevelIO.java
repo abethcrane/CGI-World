@@ -1,4 +1,4 @@
-package ass2;
+package beth.weatherworld;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -26,7 +27,7 @@ public class LevelIO {
      * @return
      * @throws FileNotFoundException 
      */
-    public static Terrain load(File mapFile) throws FileNotFoundException {
+    public static Terrain load(File mapFile) throws FileNotFoundException, JSONException {
 
         Reader in = new FileReader(mapFile);
         JSONTokener jtk = new JSONTokener(in);
@@ -85,7 +86,7 @@ public class LevelIO {
      * @param file
      * @throws IOException 
      */
-    public static void save(Terrain terrain, File file) throws IOException {
+    public static void save(Terrain terrain, File file) throws IOException, JSONException {
         JSONObject json = new JSONObject();
                 
         Dimension size = terrain.size();
@@ -147,7 +148,7 @@ public class LevelIO {
      * @param args
      * @throws IOException 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, JSONException {
         Terrain terrain = LevelIO.load(new File(args[0]));
         LevelIO.save(terrain, new File(args[1]));
     }

@@ -1,8 +1,8 @@
-package ass2;
+package beth.weatherworld;
 
 import java.util.Random;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 // Constructed after reading http://www.swiftless.com/tutorials/opengl/particles.html
 public class Raindrop {

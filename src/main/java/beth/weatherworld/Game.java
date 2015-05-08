@@ -1,33 +1,35 @@
-package ass2;
+package beth.weatherworld;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLJPanel;
-import javax.media.opengl.glu.GLU;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JFrame;
+
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLJPanel;
+import com.jogamp.opengl.glu.GLU;
 
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.gl2.GLUT;
-import ass2.Texture;
 
-import ass2.LevelIO;
+import org.json.JSONException;
+
+import beth.weatherworld.Texture;
+import beth.weatherworld.LevelIO;
 
 /**
  * COMMENT: Comment Game 
@@ -51,13 +53,13 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     
     private static final float FOV = 90;
     
-    private int myWidth = 800;
-    private int myHeight = 800;
+    private int myWidth = 1920;
+    private int myHeight = 1080;
     
     // Toggle whether we start in day or night mode
     public static boolean day = true;
     public static boolean dayNightMode = true;
-    public static long dayLength = 5*60*60; // 24 seconds in a day, 24 seconds in a night, as opposed to 24 hours all up
+    public static long dayLength = 24*60*60; // 24 seconds in a day, 24 seconds in a night, as opposed to 24 hours all up
     public static long dayStart;
     public static long nightStart;
     public static long timeLeftInDay;
@@ -66,22 +68,22 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     public static float fractionThroughNight;
     
     // Colour specifications for the background
-    private float[] dayTimings = new float[]     {0.03f,         0.06f,           0.1f,             0.3f,               0.8f,              0.95f,     0.98f,      1.0f};
-    private Color[] dayColors = new Color[]  {Helpers.orange, Helpers.pink, Helpers.deepBlue, Helpers.brightBlue, Helpers.brightBlue, Helpers.pink, Helpers.orange, Helpers.deepBlue};
-    private float[] nightTimings = new float[]   {0.1f,    0.3f,         0.6f,  0.8f,     0.95f,        1.0f};
+    private float[] dayTimings = new float[] {0.03f, 0.06f, 0.1f, 0.3f, 0.8f, 0.95f, 0.98f, 1.0f};
+    private Color[] dayColors = new Color[] {Helpers.orange, Helpers.pink, Helpers.deepBlue, Helpers.brightBlue, Helpers.brightBlue, Helpers.pink, Helpers.orange, Helpers.deepBlue};
+    private float[] nightTimings = new float[] {0.1f, 0.3f, 0.6f, 0.8f, 0.95f, 1.0f};
     private Color[] nightColors = new Color[] {Helpers.deepBlue, Helpers.midnightBlue, Helpers.black, Helpers.midnightBlue, Helpers.deepBlue, Helpers.orange};    
     
     // Light specifications
     float[] dayAmbient = {0.3f, 0.3f, 0.3f, 1};
-    float[] nightAmbient = {0.1f, 0.1f, 0.1f, 1};     // low ambient light
-	float[] diffuse = {1,1,1,1};        // full diffuse colour
+    float[] nightAmbient = {0.1f, 0.1f, 0.1f, 1}; // low ambient light
+	float[] diffuse = {1,1,1,1}; // full diffuse colour
 	float daySpecular[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 	float[] nightSpecular = {0.9f, 0.9f, 0.9f, 1}; 
 	
 	public static Map myTextures;
 	
     public Game(Terrain t) {
-    	super ("Game - Assignment 2");
+    	super ("Weatherworld");
         myTerrain = t;
         // Makes a new sky, needs no parameters (sun and stars and cloud are randomly generated)
         mySky = new Sky(myTerrain);
@@ -94,7 +96,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
      * @param args - The first argument is a level file in JSON format
      * @throws FileNotFoundException
      */
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws FileNotFoundException, JSONException {
     	dayStart = System.currentTimeMillis();
     	nightStart = System.currentTimeMillis();
     	Terrain terrain = LevelIO.load(new File(args[0]));
@@ -114,13 +116,14 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     	gl.glEnable(GL2.GL_NORMALIZE);
 
     	// Read the textures in and store them in a dictionary
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/tree.png", "png"), "tree");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/particle.bmp", "bmp"), "particle1");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/particle_mask.bmp", "bmp"), "particle2");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/sun1.png", "png"), "sun1");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/sun2.png", "png"), "sun2");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/road.png", "png"), "road");
-    	addTexture(new Texture(GLProfile.getDefault(), gl, "src/ass2/textures/grass.jpg", "jpg"), "grass");
+		// TODO: What's the best way to reference these resources relatively?
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/tree.png", "png"), "tree");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/particle.bmp", "bmp"), "particle1");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/particle_mask.bmp", "bmp"), "particle2");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/sun1.png", "png"), "sun1");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/sun2.png", "png"), "sun2");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/road.png", "png"), "road");
+    	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/grass.jpg", "jpg"), "grass");
 	}
     
     /** 
@@ -147,7 +150,8 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 
         // Starts at 800, 800 and visible
         getContentPane().add(panel, BorderLayout.CENTER);
-        setSize(800, 800);
+		// TODO: Make this full screen
+        setSize(1920, 1080);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);  
         

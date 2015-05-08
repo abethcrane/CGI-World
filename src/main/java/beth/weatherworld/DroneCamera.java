@@ -1,7 +1,7 @@
-package ass2;
+package beth.weatherworld;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLU;
 
 // Constructed after reading http://homepages.ius.edu/RWISMAN/b481/html/notes/FlyAround.htm
 public class DroneCamera extends Camera{
