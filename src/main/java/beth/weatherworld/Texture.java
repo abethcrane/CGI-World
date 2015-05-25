@@ -37,7 +37,6 @@ public class Texture {
         }
 
 		// Create the OpenGL texture object.
-		System.out.println(textureID[0]);
 		gl.glGenTextures(1, textureID, 0);
 		gl.glBindTexture(GL.GL_TEXTURE_2D, getTextureID());
 
