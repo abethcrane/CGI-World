@@ -82,7 +82,7 @@ public class Sun extends Star {
 	    	GLUquadric q = glu.gluNewQuadric();    	 
 	    	glu.gluQuadricDrawStyle(q, glu.GLU_FILL);
 	    	glu.gluQuadricTexture(q, true);
-	    	Point t = Terrain.centre;
+	    	Point t = Terrain.center;
 	    	gl.glTranslated(t.x, t.y, t.z);
 	    	gl.glTranslated(p.x, p.y, p.z);
 	    	glu.gluSphere(q, radius, slices, stacks);
