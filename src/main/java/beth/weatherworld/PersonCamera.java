@@ -1,8 +1,5 @@
 package beth.weatherworld;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.glu.GLU;
-
 public class PersonCamera extends Camera {
 	
 	boolean forward = false, backward = false, left = false, right = false;
@@ -19,7 +16,7 @@ public class PersonCamera extends Camera {
 		super(p,a);
 	}
 	
-	public void update (GL2 gl, GLU glu, Terrain t) {
+	public void update (Terrain t) {
 		// Updates the stepAmount to allow for faster/slower movement
 		if (faster) {
 			stepAmount += 0.01;
@@ -62,15 +59,5 @@ public class PersonCamera extends Camera {
 		lookAt.y = eye.y + panY;
 		lookAt.x = eye.x + Math.cos(Math.toRadians(angle % 360));
 		lookAt.z = eye.z + Math.sin(Math.toRadians(angle % 360));
-		
-		// Updates the camera
-		gl.glMatrixMode(gl.GL_MODELVIEW);
-		gl.glLoadIdentity();
-
-		glu.gluLookAt(eye.x,   eye.y,    eye.z, 
-		  		     lookAt.x, lookAt.y, lookAt.z,
-		  		     up.x,     up.y,     up.z);
-		
 	}
-
 }

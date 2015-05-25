@@ -37,4 +37,12 @@ public class Camera {
 		return p.floatVector();
 	}
 	
+	public void use(GL2 gl, GLU glu) {
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
+		gl.glLoadIdentity();
+		glu.gluLookAt(eye.x,   eye.y,    eye.z, 
+	  		     	  lookAt.x, lookAt.y, lookAt.z,
+	  		     	  up.x,     up.y,     up.z);
+	}
+	
 }

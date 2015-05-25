@@ -1,8 +1,5 @@
 package beth.weatherworld;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.glu.GLU;
-
 // Constructed after reading http://homepages.ius.edu/RWISMAN/b481/html/notes/FlyAround.htm
 public class DroneCamera extends Camera{
 	
@@ -21,10 +18,9 @@ public class DroneCamera extends Camera{
 	public void mouseMove(int x, int y, int winWidth, int winHeight) {
 		theta = (360.0/winHeight)*y*3.0;
 		phi = (360.0/winWidth)*x*3.0;
-
 	}
 	
-	public void update (GL2 gl, GLU glu) {
+	public void update () {
 		// Updates rotAmount for faster/slower movements
 		if (faster) {
 			rotAmount += 0.1;
@@ -61,13 +57,6 @@ public class DroneCamera extends Camera{
 		// Finds the gap between these points to find the new up vector (given we spin all around)
 		up = new Point(eyeTemp);
 		up.minus(eye);
-		
-		gl.glMatrixMode(GL2.GL_MODELVIEW);
-		gl.glLoadIdentity();
-	
-		glu.gluLookAt(eye.x,   eye.y,    eye.z, 
-	  		     	  lookAt.x, lookAt.y, lookAt.z,
-	  		     	  up.x,     up.y,     up.z);
 	}
 	
 }
