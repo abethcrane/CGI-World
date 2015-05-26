@@ -186,15 +186,14 @@ public class Terrain {
         myTrees.add(tree);
     }
 
-
     /**
      * Add a road. 
      * 
-     * @param x
-     * @param z
+     * @param width
+     * @param spline
      */
-    public void addRoad(double width, double[] spine) {
-        Road road = new Road(width, spine);
+    public void addRoad(double width, Point[] spline) {
+        Road road = new Road(width, spline);
         myRoads.add(road);        
     }
 

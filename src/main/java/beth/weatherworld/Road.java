@@ -1,44 +1,39 @@
 package beth.weatherworld;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.jogamp.opengl.GL2;
+import java.lang.Math.*;
 
-/**
- * COMMENT: Comment Road
- *
- * @author malcolmr
- */
+import beth.weatherworld.Point;
+
 public class Road {
 
-    private List<Double> myPoints;
+    private Point[] myPoints;
+    private int numPoints;
     private double myWidth;
     private static final double tInt = 0.01;
     private Texture myTexture;
-
+    Point[] bezierCurvePositions;
+    int numPositions;
+    
     /**
-     * Create a new road starting at the specified point
-     */
-    public Road(double width, double x0, double y0) {
-        myWidth = width;
-        myPoints = new ArrayList<Double>();
-        myPoints.add(x0);
-        myPoints.add(y0);
-    }
-
-    /**
-     * Create a new road with the specified spine
+     * Create a new road with the specified spline
      *
      * @param width
-     * @param spine
+     * @param spline
      */
-    public Road(double width, double[] spine) {
+    public Road(double width, Point[] spline) {
         myWidth = width;
-        myPoints = new ArrayList<Double>();
-        for (int i = 0; i < spine.length; i++) {
-            myPoints.add(spine[i]);
+        
+        numPositions = (int)(1.0/tInt);
+        
+        numPoints = spline.length;
+        myPoints = new Point[numPoints];
+        for (int i = 0; i < numPoints; i++) {
+            myPoints[i] = spline[i];
         }
+        
+        bezierCurvePositions = new Point[numPositions];
+        calculateBezierCurvePositions();
     }
 
     /**
@@ -49,107 +44,56 @@ public class Road {
     public double width() {
         return myWidth;
     }
-
-    /**
-     * Add a new segment of road, beginning at the last point added and ending at (x3, y3).
-     * (x1, y1) and (x2, y2) are interpolated as bezier control points.
-     *
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     * @param x3
-     * @param y3
-     */
-    public void addSegment(double x1, double y1, double x2, double y2, double x3, double y3) {
-        myPoints.add(x1);
-        myPoints.add(y1);
-        myPoints.add(x2);
-        myPoints.add(y2);
-        myPoints.add(x3);
-        myPoints.add(y3);
-    }
-
-    /**
-     * Get the number of segments in the curve
-     *
-     * @return
-     */
-    public int size() {
-        return myPoints.size() / 6;
+    
+    public int numPoints() {
+        return numPoints;
     }
 
     /**
      * Get the specified control point.
      *
-     * @param i
      * @return
      */
-    public double[] controlPoint(int i) {
-        double[] p = new double[2];
-        p[0] = myPoints.get(i*2);
-        p[1] = myPoints.get(i*2+1);
-        return p;
+    public Point[] points() {
+        return myPoints; // TODO: Do I need to return a copy instead
     }
-
-    /**
-     * Get a point on the spine. The parameter t may vary from 0 to size().
-     * Points on the kth segment take have parameters in the range (k, k+1).
-     *
-     * @param t
-     * @return
+    
+     /**
+     * Calculate the position of a point on a cubic bezier curve
+     * http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Cubic_B.C3.A9zier_curves
      */
-    public double[] point(double t) {
-        int i = (int)Math.floor(t);
-        t = t - i;
-
-        i *= 6;
-
-        double x0 = myPoints.get(i++);
-        double y0 = myPoints.get(i++);
-        double x1 = myPoints.get(i++);
-        double y1 = myPoints.get(i++);
-        double x2 = myPoints.get(i++);
-        double y2 = myPoints.get(i++);
-        double x3 = myPoints.get(i++);
-        double y3 = myPoints.get(i++);
-
-        double[] p = new double[2];
-
-        p[0] = b(0, t) * x0 + b(1, t) * x1 + b(2, t) * x2 + b(3, t) * x3;
-        p[1] = b(0, t) * y0 + b(1, t) * y1 + b(2, t) * y2 + b(3, t) * y3;
-
-        return p;
-    }
-
-    /**
-     * Calculate the Bezier coefficients
-     *
-     * @param i
-     * @param t
-     * @return
-     */
-    private double b(int i, double t) {
-
-        switch(i) {
-
-        case 0:
-            return (1-t) * (1-t) * (1-t);
-
-        case 1:
-            return 3 * (1-t) * (1-t) * t;
-
-        case 2:
-            return 3 * (1-t) * t * t;
-
-        case 3:
-            return t * t * t;
+    private void calculateBezierCurvePositions() {
+        double t = 0;
+        for (int positionNum = 0; positionNum < numPositions && t < 1; positionNum++) {
+            bezierCurvePositions[positionNum] = new Point();
+            
+            Point temp = new Point(myPoints[0]);
+            temp.scalarMultiply(Math.pow((1-t), 3));
+            bezierCurvePositions[positionNum].plus(temp);
+            
+            temp = new Point(myPoints[1]);
+            temp.scalarMultiply(Math.pow((1-t), 2) * 3 * t);
+            bezierCurvePositions[positionNum].plus(temp);
+            
+            temp = new Point(myPoints[2]);
+            temp.scalarMultiply(Math.pow(t, 2) * 3 * (1-t));
+            bezierCurvePositions[positionNum].plus(temp);
+            
+            temp = new Point(myPoints[3]);
+            temp.scalarMultiply(Math.pow(t, 3));
+            bezierCurvePositions[positionNum].plus(temp);
+            
+            t += tInt;
         }
-
-        // this should never happen
-        throw new IllegalArgumentException("" + i);
     }
-
+    
+    /**
+     * Calculate the position of a point on a cubic bezier curve
+     * http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Cubic_B.C3.A9zier_curves
+     * @param t
+     * @return
+     */
+     
     public void draw (GL2 gl, Terrain map) {
     	
     	gl.glColor3d(1, 1, 1);
@@ -174,12 +118,15 @@ public class Road {
 		
         gl.glBegin(gl.GL_TRIANGLE_STRIP);
         
-	        Point center, next, rotated, normal;
-	        for (double t = 0; t < 1-tInt; t += tInt) {
-	            center = new Point(point(t)[0], map.altitude(point(t)[0], point(t)[1]), point(t)[1]);
-	    		next = new Point(point(t+tInt)[0], map.altitude(point(t+tInt)[0], point(t+tInt)[1]), point(t+tInt)[1]);
+            double t = 0;
+	        for (int index = 0; index < numPositions && t < 1 - tInt; index++) {
+                Point center = bezierCurvePositions[index];
+	            center.y = map.altitude(center.x, center.z);
+                
+                Point next = bezierCurvePositions[index + 1];
+                next.y = map.altitude(next.x, next.z);
 	    		// Rotated is the vector between the current center and the next center, rotated 90 degrees
-	    		rotated = new Point(-next.z + center.z, 0, next.x - center.x);
+	    		Point rotated = new Point(-next.z + center.z, 0, next.x - center.x);
 	    		// It's then scaled to be width/2 long
 	    		rotated.scalarMultiply((myWidth/2)/rotated.magnitude());
 	            
@@ -190,15 +137,17 @@ public class Road {
 	            // Right rotates the other
 	            Point right = new Point(center);
 	            right.plus(rotated);
-	            
+
 	            // Sets the normal to be the up vector (roads are flat)
 	            gl.glNormal3d(0, 1, 0);
 	            
 	            // Sets the texture co-ords and draws the vertices
 	            gl.glTexCoord2d(t, 0);
-	            	gl.glVertex3dv(left.doubleVector(), 0);
+	            gl.glVertex3dv(left.doubleVector(), 0);
 	            gl.glTexCoord2d(t, 1);
-	            	gl.glVertex3dv(right.doubleVector(), 0);
+	            gl.glVertex3dv(right.doubleVector(), 0);
+                
+                t += tInt;
 	        }
 	        
         gl.glEnd();
