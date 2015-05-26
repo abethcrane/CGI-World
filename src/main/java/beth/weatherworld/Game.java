@@ -9,6 +9,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JFrame;
@@ -43,8 +44,8 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     
     private DroneCamera myDrone;
     private PersonCamera myPersonCam;
-    private boolean usingDrone = false;
-    private boolean usingPerson = true;
+    private boolean usingDrone = true;
+    private boolean usingPerson = false;
     
     private Person myPerson;
     
@@ -96,10 +97,23 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
      * @param args - The first argument is a level file in JSON format
      * @throws FileNotFoundException
      */
-    public static void main(String[] args) throws FileNotFoundException, JSONException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, JSONException {
     	dayStart = System.currentTimeMillis();
     	nightStart = System.currentTimeMillis();
-    	Terrain terrain = LevelIO.load(new File(args[0]));
+		
+		Terrain terrain;
+		
+		if (args.length > 0) {
+    		terrain = LevelIO.load(new File(args[0]));
+		} else {
+			terrain = LevelIO.generate();
+			Date d = new Date(System.currentTimeMillis());
+			File f = new File("levels/" + d.toString() + "-levelFile.json");
+			LevelIO.save(terrain, f);
+		}
+		
+        terrain.setCenter();
+
         Game game = new Game(terrain);
         game.run();
     }
@@ -130,8 +144,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
      * Run the game.
      *
      */
-    public void run() {   
-    	
+    public void run() {
     	// Makes a standard glprofile and panel, setting this as the key and mousemotion listener
         GLProfile glprofile = GLProfile.getDefault();
         GLCapabilities glcapabilities = new GLCapabilities(glprofile);
@@ -155,11 +168,11 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);  
         
-        // Sets the centre point of the terrain and makes the camera and avatar
-        Point c = new Point(myTerrain.centre);
+        // Sets the center point of the terrain and makes the camera and avatar
+        Point c = new Point(myTerrain.center);
         myDrone = new DroneCamera(new Point(c.x, c.y + 10, c.z), c);
         myPersonCam = new PersonCamera(new Point(0, myTerrain.altitude(0,0), 0), new Point(c.x, myTerrain.altitude(c.x, c.z), c.z));
-        myPerson = new Person();
+        myPerson = new Person(c.x, c.y, c.z);
     }
 
 	@Override
@@ -258,7 +271,6 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
         // Update the clock
         Helpers.updateDayNight(gl);
         
-        
         // Set background colour
         Color c = Helpers.brightBlue;
         if (dayNightMode) {
@@ -267,28 +279,33 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
         gl.glClearColor((float)c.r, (float)c.g, (float)c.b, 1);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
         
+		// Update the camera positions - don't change the view yet though
+		myPersonCam.update(myTerrain);
+        myPerson.update(gl, myPersonCam, myTerrain);
+		// TODO: Uncertain if this will give a good experience
+		myDrone.update();
+		
     	// If it's day we update the camera first before the global light
     	if (day) {
     		// Update the Cameras
             if (usingDrone) {
-            	myDrone.update(gl,glu);
+				myDrone.use(gl,glu);
             } else if (usingPerson) {
-            	myPersonCam.update(gl, glu, myTerrain);
-            	myPerson.update(gl, myPersonCam, myTerrain);
+				myPersonCam.use(gl,glu);
             }
-    		
+
             //Update the lights
             setDayLights(gl);
         // If night we update the lighting first
     	} else {
     		// Update the lights
     		setNightLights(gl);
-    			
+
     		// Update the Cameras
             if (usingDrone) {
-            	myDrone.update(gl,glu);
+				myDrone.use(gl,glu);
             } else if (usingPerson) {
-            	myPersonCam.update(gl, glu, myTerrain);
+				myPersonCam.use(gl,glu);
             }
     	}
     	
