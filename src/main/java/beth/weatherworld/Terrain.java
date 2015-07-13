@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.Math;
 import java.lang.Object.*;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -32,6 +33,7 @@ public class Terrain {
 
     private int myWidth;
     private int myDepth;
+    private int baseHeight;
     private double[][] myAltitude;
     private List<Tree> myTrees;
     private List<Road> myRoads;
@@ -39,6 +41,8 @@ public class Terrain {
     static Point center;
     Texture myTexture;
     public boolean texture = true;
+    
+    private List<Triangle> trianglesToDraw;
 
     /**
      * Create a new terrain
@@ -49,10 +53,17 @@ public class Terrain {
     public Terrain(int width, int depth) {
         myWidth = width;
         myDepth = depth;
+        baseHeight = 0;
         myAltitude = new double[width][depth];
         myTrees = new ArrayList<Tree>();
         myRoads = new ArrayList<Road>();
+        trianglesToDraw = new ArrayList<Triangle>();
         center = new Point(width/2, 0, depth/2);
+    }
+    
+    public void initialize() {
+        setCenter();
+        calculateTriangles();
     }
     
     public int width() {
@@ -73,6 +84,10 @@ public class Terrain {
 
     public Point getSunlight() {
         return new Point(mySunlight);
+    }
+    
+    public int baseHeight() {
+        return baseHeight;
     }
 
     /**
@@ -108,10 +123,6 @@ public class Terrain {
         
         setCenter();
     }
-    
-    public void setCenter() {
-        center = new Point(myWidth/2, altitude(myWidth/2, myDepth/2), myDepth/2);
-    }
 
     /**
      * Get the altitude at a grid point
@@ -132,7 +143,7 @@ public class Terrain {
      * @return
      */
     public void setGridAltitude(int x, int z, double h) {
-        myAltitude[x][z] = h;
+        myAltitude[x][z] = Math.max(baseHeight, h);
     }
 
     /**
@@ -196,6 +207,90 @@ public class Terrain {
         Road road = new Road(width, spline);
         myRoads.add(road);        
     }
+    
+    private void setCenter() {
+        center = new Point(myWidth/2, altitude(myWidth/2, myDepth/2), myDepth/2);
+    }
+    
+    // Once the mesh has been generated, calculate the triangles so that on the draw call we do not have to do this.
+    private void calculateTriangles() {
+        
+        // Save the triangles for the lumpy top terrain
+		for (int x = 0; x < myWidth - 1; x++) {
+			for (int z = 0; z < myDepth - 1; z++) {
+                // All grid squares are split into 2 triangles
+				Point bottomLeft = new Point(x, myAltitude[x][z+1], z+1);
+				Point topLeft = new Point(x, myAltitude[x][z], z);
+				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
+                Point bottomRight = new Point(x+1, myAltitude[x+1][z+1], z+1);
+				
+				// Triangle 1 - bottom left, top left, top right
+				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+                // Triangle 2 - top right, bottom right, bottom left
+                trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));	
+			}
+    	}
+        
+        // Save triangles for the flat bottom of the island
+		// TODO: Do I want the normals to point out of the bottom of these guys??
+		for (int x = 0; x < myWidth - 1; x++) {
+			for (int z = 0; z < myDepth - 1; z++) {
+				Point bottomLeft = new Point(x, baseHeight, z+1);
+				Point topLeft = new Point(x, baseHeight, z);
+				Point topRight = new Point(x+1, baseHeight, z);
+                Point bottomRight = new Point(x+1, baseHeight, z+1);
+                
+                // Triangle 1 - bottom left, top left, top right
+                trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
+				// Triangle 2 - top right, bottom right, bottom left
+				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+			}
+		}
+        
+        // TODO: Make this less hackish - better size squares etc
+		// TODO: 2 of these sides will need different normals - because if they point the same way then one is facing inside the island
+		
+        // Draw the 2 island sides that are parallel with the x axis: x = 0 and x = width, with z = 0 -> depth
+        int[] xSides = {0, myWidth - 1};
+		for (int x : xSides) {
+		    for (int z = 0; z < myDepth - 1; z++) {
+		        // When looking at it from the side, with 0,0 to your left
+				
+				Point bottomLeft = new Point(x, baseHeight, z);
+				Point topLeft = new Point(x, myAltitude[x][z], z);
+				Point topRight = new Point(x, myAltitude[x][z+1], z+1);
+                Point bottomRight = new Point(x, baseHeight, z+1);
+                
+                // Triangle 1 -
+				// bottom left (0, 0, z), top left (0, alt, z), top right (0, alt, z+1)
+		        trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
+				
+				// Triangle 2 - 
+				// top right (0, alt, z+1), bottom right (0, 0, z+1), bottom left (0, 0, z)
+				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+			}
+		}
+		
+		// Draw the 2 island sides that are parallel with the z axis: z = 0 and z = depth, with x = 0 -> width
+        int[] zSides = {0, myDepth - 1};
+		for (int z : zSides) {
+		    for (int x = 0; x < myWidth - 1; x++) {
+		        // When looking at it from the bottom, with 0, depth to your left
+				
+				Point bottomLeft = new Point(x, baseHeight, z);
+				Point topLeft = new Point(x, myAltitude[x][z], z);
+				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
+                Point bottomRight = new Point(x+1, baseHeight, z);
+                
+                // Triangle 1 - 
+				// bottom left (x, 0, depth), top left (x, alt, depth), top right (x+1, alt, depth)
+		        trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
+				
+				// Triangle 2 - top right(x+1, alt, depth), bottom right (x+1, 0, depth), bottom left (x, 0, depth)
+				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+			}
+		}        
+    }
 
     public void draw(GL2 gl) {
         
@@ -205,11 +300,6 @@ public class Terrain {
 
 		gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL);
     	gl.glPolygonOffset(0,0);
-		
-		Point p1 = new Point();
-		Point p2 = new Point();
-		Point p3 = new Point();
-		Point normal;
 		
 		if (texture) {
 			gl.glEnable(gl.GL_TEXTURE_2D);
@@ -226,63 +316,20 @@ public class Terrain {
 
 		gl.glBegin(GL2.GL_TRIANGLES);
 		
-		for (int x = 0; x < myWidth - 1; x++) {
-			for (int z = 0; z < myDepth - 1; z++) {
-				//Triangle 1 - top right, top left, bottom left,
-				p1.reset(x, myAltitude[x][z+1], z+1);
-				p2.reset(x, myAltitude[x][z], z);
-				p3.reset(x+1, myAltitude[x+1][z], z);
-				
-				normal = Helpers.calculateNormal(new Point[] {p1, p2, p3});
-				gl.glNormal3dv(normal.doubleVector(), 0);
-				
+		// Draw each of our pre-calculated triangles
+		for (Triangle triangle : trianglesToDraw) {
+			gl.glNormal3dv(triangle.normal, 0);
+			
+			for (int i = 0; i < 3; i++) {
 				if (texture) {
-					// Draws the first triangle 
-					gl.glTexCoord2d(0, 0);
-					gl.glVertex3dv(p1.doubleVector(), 0);
-					gl.glTexCoord2d(1, 0);
-					gl.glVertex3dv(p2.doubleVector(), 0);
-					gl.glTexCoord2d(0, 1);
-					gl.glVertex3dv(p3.doubleVector(), 0);
+					gl.glTexCoord2d(triangle.textureCoords[i].x, triangle.textureCoords[i].y);
 				} else {
-					// Color is calculated based on x y and z (with an aim towards higher green values).
-					Color c1 = new Color((z+1)/2, x, myAltitude[x][z+1]/2);
-					Color c2 = new Color(z/2, x, myAltitude[x][z]/2);
-					Color c3 = new Color(z/2, x+1, myAltitude[x+1][z]/2);
-					
-					// Draws the first triangle 
-					gl.glColor3dv(c1.doubleVector(), 0);
-					gl.glVertex3dv(p1.doubleVector(), 0);
-					gl.glColor3dv(c2.doubleVector(), 0);
-					gl.glVertex3dv(p2.doubleVector(), 0);
-					gl.glColor3dv(c3.doubleVector(), 0);
-					gl.glVertex3dv(p3.doubleVector(), 0);
+					gl.glColor3dv(triangle.colors[i].doubleVector(), 0);
 				}
-                
-				//Triangle 2 -bottom left, bottom right, top right
-				p1.reset(x+1, myAltitude[x+1][z], z);
-				p2.reset(x+1, myAltitude[x+1][z+1], z+1);
-				p3.reset(x, myAltitude[x][z+1], z+1);
-				
-				normal = Helpers.calculateNormal(new Point[] {p1, p2, p3});
-				gl.glNormal3dv(normal.doubleVector(), 0);
-				 
-				if (texture) {
-					gl.glTexCoord2d(1, 0);
-					gl.glVertex3dv(p1.doubleVector(), 0);
-					gl.glTexCoord2d(1, 1);
-					gl.glVertex3dv(p2.doubleVector(), 0);
-					gl.glTexCoord2d(0, 1);
-					gl.glVertex3dv(p3.doubleVector(), 0);
-				} else {
-					// Colour is not reset here, to give the fun triangle colour effect
-					gl.glVertex3dv(p1.doubleVector(), 0);
-					gl.glVertex3dv(p2.doubleVector(), 0);
-					gl.glVertex3dv(p3.doubleVector(), 0);
-				}		
+				gl.glVertex3dv(triangle.points[i].doubleVector(), 0);
 			}
-    	}
-        
+		}
+		
 	    gl.glEnd();    
 	    if (texture) {
 	    	gl.glDisable(gl.GL_TEXTURE_2D);

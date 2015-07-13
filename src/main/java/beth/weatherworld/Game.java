@@ -112,7 +112,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 			LevelIO.save(terrain, f);
 		}
 		
-        terrain.setCenter();
+        terrain.initialize();
 
         Game game = new Game(terrain);
         game.run();
