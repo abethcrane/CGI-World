@@ -28,18 +28,15 @@ public class Triangle {
 		colors[2] = new Color(p3.z/2, p3.x/2, p3.y/2);
 		
 		// We have to set the texture co-ords appropriately, depending on whether this triangle is top-left or bottom-right of the square (squares are split into 2 triangles)
-		// TODO: I want to switch these to match the points - as in it should be:
-		//Triangle 1 - bottom left, top left, top right
-		//Triangle 2 - top right, bottom right, bottom left
 		textureCoords = new Coordinate[3];
-		if (topLeft) {
+		if (topLeft) { // - bottom left, top left, top right
 			textureCoords[0] = new Coordinate(0,0);
+			textureCoords[1] = new Coordinate(0,1);
+			textureCoords[2] = new Coordinate(1,1);
+		} else { // - top right, bottom right, bottom left
+			textureCoords[0] = new Coordinate(1,1);
 			textureCoords[1] = new Coordinate(1,0);
-			textureCoords[2] = new Coordinate(0,1);
-		} else {
-			textureCoords[0] = new Coordinate(1,0);
-			textureCoords[1] = new Coordinate(1,1);
-			textureCoords[2] = new Coordinate(0,1);
+			textureCoords[2] = new Coordinate(0,0);
 		}
 	}
 }
