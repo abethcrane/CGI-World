@@ -80,6 +80,7 @@ public class LevelIO {
                 terrain.addRoad(w, spline);
             }
         }
+        
         return terrain;
     }
     
@@ -95,10 +96,11 @@ public class LevelIO {
         float dz = rand.nextInt();
         terrain.setSunlightDir(dx, dy, dz);
         
-        Double prevAltitude = 0.0;
+        Double prevAltitude = 3.0;
         for (int x = 0; x < width; x++) {
            for (int z = 0; z < depth; z++) {
-               terrain.setGridAltitude(x, z, prevAltitude - 1 + rand.nextDouble() * 2);
+               prevAltitude = (prevAltitude - 1) + (rand.nextDouble() * 2);
+               terrain.setGridAltitude(x, z, prevAltitude);
            }
         }
        
