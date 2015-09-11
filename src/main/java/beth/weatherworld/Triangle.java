@@ -12,7 +12,7 @@ public class Triangle {
 	public Color[] colors;
 	public Coordinate[] textureCoords;
 	
-	public Triangle (Point p1, Point p2, Point p3, boolean topLeft) {
+	public Triangle (Point p1, Point p2, Point p3, boolean bottomLeft) {
 		points = new Point[3];
 		points[0] = p1;
 		points[1] = p2;
@@ -26,14 +26,14 @@ public class Triangle {
 		
 		// We have to set the texture co-ords appropriately, depending on whether this triangle is top-left or bottom-right of the square (squares are split into 2 triangles)
 		textureCoords = new Coordinate[3];
-		if (topLeft) { // - bottom left, top left, top right
-			textureCoords[0] = new Coordinate(0,0);
-			textureCoords[1] = new Coordinate(0,1);
-			textureCoords[2] = new Coordinate(1,1);
-		} else { // - top right, bottom right, bottom left
-			textureCoords[0] = new Coordinate(1,1);
-			textureCoords[1] = new Coordinate(1,0);
-			textureCoords[2] = new Coordinate(0,0);
+		if (bottomLeft) { // top left, bottom left, bottom right
+			textureCoords[0] = new Coordinate(0,1);
+			textureCoords[1] = new Coordinate(0,0);
+			textureCoords[2] = new Coordinate(1,0);
+		} else { // bottom right, top right, top left
+			textureCoords[0] = new Coordinate(1,0);
+			textureCoords[1] = new Coordinate(1,1);
+			textureCoords[2] = new Coordinate(0,1);
 		}
 	}
 }

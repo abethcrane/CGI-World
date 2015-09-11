@@ -245,9 +245,9 @@ public class Terrain {
                 Point bottomRight = new Point(x+1, myAltitude[x+1][z+1], z+1);
 				
 				// Triangle 1 - top left, bottom left, bottom right
-				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, false));
+				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
                 // Triangle 2 - bottom right, top right, top left
-                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, true));
+                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
                 
                 faceNormals[x][z][0] = Helpers.calculateNormal(new Point[] {topLeft, bottomLeft, bottomRight});
                 faceNormals[x][z][1] = Helpers.calculateNormal(new Point[] {bottomRight, topRight, topLeft});
@@ -264,9 +264,9 @@ public class Terrain {
                 Point bottomRight = new Point(x+1, baseHeight, z+1);
                 
 				// Triangle 1 - top left, bottom left, bottom right
-				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, false));
+				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
                 // Triangle 2 - bottom right, top right, top left
-                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, true));	
+                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));	
 			}
 		}
         
@@ -287,10 +287,10 @@ public class Terrain {
                 // Clockwise for the first layer, so the normal'll point of the island out not in
                 if (x == 0) {
                     // Triangle 1 - top left (0, alt, z), top right (0, alt, z+1), bottom right (0, 0, z+1)
-                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, true));
+                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));
                     
                     // Triangle 2 - bottom right (0, 0, z+1), bottom left (0, 0, z), top left (0, alt, z)
-                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, false));
+                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
                 } else {
                     // Triangle 1 - top left (0, alt, z), bottom left (0, 0, z), bottom right (0, 0, z+1)
                     trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
@@ -317,10 +317,10 @@ public class Terrain {
                 // Clockwise for the right layer, so the normal'll point of the island out not in
                 if (z == myDepth) {
                     // Triangle 1 - top left (x, alt, depth), top right (x+1, alt, depth), bottom right (x+1, 0, depth)
-                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, true));
+                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));
                     
                    // Triangle 2 - bottom right (x+1, 0, depth), bottom left (x, 0, depth), top left (x, alt, depth)
-                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, false));
+                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
                 } else {
                     // Triangle 1 - top left (x, alt, depth), bottom left (x, 0, depth), bottom right (x+1, 0, depth)
                     trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
@@ -417,7 +417,6 @@ public class Terrain {
 		for (Triangle triangle : trianglesToDraw) {		
 			for (int i = 0; i < 3; i++) {
                 Point position = triangle.points[i];
-                System.out.println("Position = " + position.x + "," + position.z + " . Num drawn = " + numTriangles);
                 double[] normal = vertexNormals[(int)position.x][(int)position.z].doubleVector();
                 // TODO: Calculate normals for more than just the top
                 if (numTriangles < myWidth * myDepth * 2) {
