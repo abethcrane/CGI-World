@@ -87,8 +87,8 @@ public class LevelIO {
     public static Terrain generate() {
         Random rand = new Random();
         
-        int width = rand.nextInt(10) + 3;
-        int depth = rand.nextInt(10) + 3;
+        int width = rand.nextInt(20) + 3;
+        int depth = rand.nextInt(20) + 3;
         Terrain terrain = new Terrain(width, depth);
         
         float dx = rand.nextInt();
@@ -96,18 +96,26 @@ public class LevelIO {
         float dz = rand.nextInt();
         terrain.setSunlightDir(dx, dy, dz);
         
+        // TODO: Set hills and then lerp out around them. Given them a height and maybe a width?
+        
         Double prevAltitude = 3.0;
         for (int x = 0; x < width; x++) {
            for (int z = 0; z < depth; z++) {
-               prevAltitude = (prevAltitude - 1) + (rand.nextDouble() * 2);
-               terrain.setGridAltitude(x, z, prevAltitude);
+               // Combine squares around you to get an average
+               prevAltitude = (terrain.getGridAltitude(x-1, z) + 
+                               terrain.getGridAltitude(x, z-1) +
+                               terrain.getGridAltitude(x-1, z-1) +
+                               terrain.getGridAltitude(x-1, z+1)) / 4;
+              // Negative change, 0 change or positive change
+              prevAltitude += (rand.nextInt(3)-1) * (rand.nextDouble()) / 2;
+              terrain.setGridAltitude(x, z, prevAltitude);
            }
         }
        
         int numTrees = rand.nextInt(Math.max(1,width*depth/10));
         for (int i = 0; i < numTrees; i++) {
-            double x = rand.nextDouble() * rand.nextInt(width);
-            double z = rand.nextDouble() * rand.nextInt(depth);
+            double x = rand.nextDouble() * rand.nextInt(width-2) + 1;
+            double z = rand.nextDouble() * rand.nextInt(depth-2) + 1;
             terrain.addTree(x, z);
         }
         
