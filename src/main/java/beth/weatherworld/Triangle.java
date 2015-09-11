@@ -9,7 +9,6 @@ import beth.weatherworld.Point;
 public class Triangle {
 
 	public Point[] points;
-	public double[] normal;
 	public Color[] colors;
 	public Coordinate[] textureCoords;
 	
@@ -18,9 +17,7 @@ public class Triangle {
 		points[0] = p1;
 		points[1] = p2;
 		points[2] = p3;
-		
-		normal = Helpers.calculateNormal(new Point[] {p1, p2, p3}).doubleVector();
-		
+
 		// Color is calculated based on x y and z (with an aim towards higher green values).
 		colors = new Color[3];
 		colors[0] = new Color(p1.z/2, p1.x/2, p1.y/2);

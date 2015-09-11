@@ -43,6 +43,8 @@ public class Terrain {
     public boolean texture = true;
     
     private List<Triangle> trianglesToDraw;
+    private Point[][][] faceNormals;
+    private Point[][] vertexNormals;
 
     /**
      * Create a new terrain
@@ -54,16 +56,20 @@ public class Terrain {
         myWidth = width;
         myDepth = depth;
         baseHeight = 0;
-        myAltitude = new double[width][depth];
+        myAltitude = new double[width+1][depth+1];
         myTrees = new ArrayList<Tree>();
         myRoads = new ArrayList<Road>();
         trianglesToDraw = new ArrayList<Triangle>();
         center = new Point(width/2, 0, depth/2);
+        faceNormals = new Point[width+1][depth+1][2];
+        vertexNormals = new Point[width+2][depth+2];
     }
     
     public void initialize() {
         setCenter();
+        setEdgeAltitudes();
         calculateTriangles();
+        calculateVertexNormals();
     }
     
     public int width() {
@@ -113,7 +119,7 @@ public class Terrain {
         myWidth = width;
         myDepth = depth;
         double[][] oldAlt = myAltitude;
-        myAltitude = new double[width][depth];
+        myAltitude = new double[width+1][depth+1];
 
         for (int x = 0; x < width && x < oldAlt.length; x++) {
             for (int z = 0; z < depth && z < oldAlt[x].length; z++) {
@@ -132,6 +138,9 @@ public class Terrain {
      * @return
      */
     public double getGridAltitude(int x, int z) {
+        if (x < 0 || z < 0 || x >= myWidth || z >= myDepth) {
+            return baseHeight;
+        }
         return myAltitude[x][z];
     }
 
@@ -144,6 +153,16 @@ public class Terrain {
      */
     public void setGridAltitude(int x, int z, double h) {
         myAltitude[x][z] = Math.max(baseHeight, h);
+    }
+    
+    // The edges of the grids need altitudes so that we can figure out the edge vertex normals
+    private void setEdgeAltitudes() {
+        for (int x = 0; x < myWidth; x++) {
+            myAltitude[x][myDepth] = baseHeight;
+        }
+        for (int z = 0; z < myDepth; z++) {
+            myAltitude[myWidth][z] = baseHeight;
+        }
     }
 
     /**
@@ -193,7 +212,7 @@ public class Terrain {
      */
     public void addTree(double x, double z) {
         double y = altitude(x, z);
-        Tree tree = new Tree(new Point(x, y, z));
+        Tree tree = new Tree(new Point(x, altitude(x,z), z));
         myTrees.add(tree);
     }
 
@@ -213,37 +232,41 @@ public class Terrain {
     }
     
     // Once the mesh has been generated, calculate the triangles so that on the draw call we do not have to do this.
+    // Triangles are drawn counterclockwise so that the normals face the right way
     private void calculateTriangles() {
         
         // Save the triangles for the lumpy top terrain
-		for (int x = 0; x < myWidth - 1; x++) {
-			for (int z = 0; z < myDepth - 1; z++) {
+		for (int x = 0; x < myWidth; x++) {
+			for (int z = 0; z < myDepth; z++) {
                 // All grid squares are split into 2 triangles
 				Point bottomLeft = new Point(x, myAltitude[x][z+1], z+1);
 				Point topLeft = new Point(x, myAltitude[x][z], z);
 				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
                 Point bottomRight = new Point(x+1, myAltitude[x+1][z+1], z+1);
 				
-				// Triangle 1 - bottom left, top left, top right
-				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
-                // Triangle 2 - top right, bottom right, bottom left
-                trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));	
+				// Triangle 1 - top left, bottom left, bottom right
+				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, false));
+                // Triangle 2 - bottom right, top right, top left
+                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, true));
+                
+                faceNormals[x][z][0] = Helpers.calculateNormal(new Point[] {topLeft, bottomLeft, bottomRight});
+                faceNormals[x][z][1] = Helpers.calculateNormal(new Point[] {bottomRight, topRight, topLeft});
 			}
     	}
         
         // Save triangles for the flat bottom of the island
 		// TODO: Do I want the normals to point out of the bottom of these guys??
-		for (int x = 0; x < myWidth - 1; x++) {
-			for (int z = 0; z < myDepth - 1; z++) {
+		for (int x = 0; x < myWidth; x++) {
+			for (int z = 0; z < myDepth; z++) {
 				Point bottomLeft = new Point(x, baseHeight, z+1);
 				Point topLeft = new Point(x, baseHeight, z);
 				Point topRight = new Point(x+1, baseHeight, z);
                 Point bottomRight = new Point(x+1, baseHeight, z+1);
                 
-                // Triangle 1 - bottom left, top left, top right
-                trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
-				// Triangle 2 - top right, bottom right, bottom left
-				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+				// Triangle 1 - top left, bottom left, bottom right
+				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, false));
+                // Triangle 2 - bottom right, top right, top left
+                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, true));	
 			}
 		}
         
@@ -251,9 +274,9 @@ public class Terrain {
 		// TODO: 2 of these sides will need different normals - because if they point the same way then one is facing inside the island
 		
         // Draw the 2 island sides that are parallel with the x axis: x = 0 and x = width, with z = 0 -> depth
-        int[] xSides = {0, myWidth - 1};
+        int[] xSides = {0, myWidth};
 		for (int x : xSides) {
-		    for (int z = 0; z < myDepth - 1; z++) {
+		    for (int z = 0; z < myDepth; z++) {
 		        // When looking at it from the side, with 0,0 to your left
 				
 				Point bottomLeft = new Point(x, baseHeight, z);
@@ -261,35 +284,109 @@ public class Terrain {
 				Point topRight = new Point(x, myAltitude[x][z+1], z+1);
                 Point bottomRight = new Point(x, baseHeight, z+1);
                 
-                // Triangle 1 -
-				// bottom left (0, 0, z), top left (0, alt, z), top right (0, alt, z+1)
-		        trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
-				
-				// Triangle 2 - 
-				// top right (0, alt, z+1), bottom right (0, 0, z+1), bottom left (0, 0, z)
-				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+                // Clockwise for the first layer, so the normal'll point of the island out not in
+                if (x == 0) {
+                    // Triangle 1 - top left (0, alt, z), top right (0, alt, z+1), bottom right (0, 0, z+1)
+                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, true));
+                    
+                    // Triangle 2 - bottom right (0, 0, z+1), bottom left (0, 0, z), top left (0, alt, z)
+                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, false));
+                } else {
+                    // Triangle 1 - top left (0, alt, z), bottom left (0, 0, z), bottom right (0, 0, z+1)
+                    trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
+                    
+                    // Triangle 2 - bottom right (0, 0, z+1), top right (0, alt, z+1), top left (0, alt, z)
+                    trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
+                }
+                
+                
 			}
 		}
 		
 		// Draw the 2 island sides that are parallel with the z axis: z = 0 and z = depth, with x = 0 -> width
-        int[] zSides = {0, myDepth - 1};
+        int[] zSides = {0, myDepth};
 		for (int z : zSides) {
-		    for (int x = 0; x < myWidth - 1; x++) {
+		    for (int x = 0; x < myWidth; x++) {
 		        // When looking at it from the bottom, with 0, depth to your left
 				
 				Point bottomLeft = new Point(x, baseHeight, z);
 				Point topLeft = new Point(x, myAltitude[x][z], z);
 				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
                 Point bottomRight = new Point(x+1, baseHeight, z);
-                
-                // Triangle 1 - 
-				// bottom left (x, 0, depth), top left (x, alt, depth), top right (x+1, alt, depth)
-		        trianglesToDraw.add(new Triangle(bottomLeft, topLeft, topRight, true));
-				
-				// Triangle 2 - top right(x+1, alt, depth), bottom right (x+1, 0, depth), bottom left (x, 0, depth)
-				trianglesToDraw.add(new Triangle(topRight, bottomRight, bottomLeft, false));
+
+                // Clockwise for the right layer, so the normal'll point of the island out not in
+                if (z == myDepth) {
+                    // Triangle 1 - top left (x, alt, depth), top right (x+1, alt, depth), bottom right (x+1, 0, depth)
+                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, true));
+                    
+                   // Triangle 2 - bottom right (x+1, 0, depth), bottom left (x, 0, depth), top left (x, alt, depth)
+                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, false));
+                } else {
+                    // Triangle 1 - top left (x, alt, depth), bottom left (x, 0, depth), bottom right (x+1, 0, depth)
+                    trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
+                    
+                    // Triangle 2 - bottom right (x+1, 0, depth), top right(x+1, alt, depth), top left (x, alt, depth)
+                    trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
+                }
 			}
 		}        
+    }
+    
+    // Each vertex is the normalized sum of all face normals it is a vertex on.
+    // For most vertices they are on 8 triangles (there) are 4 squares they lie between, and 2 triangles to a square.
+    private void calculateVertexNormals() {
+        /*
+                .    .    .   .
+            | ab | cd | ef 
+            .    *    .   .
+            | gh | ij | kl
+            .    .    .   .
+            | mn | op | qr
+            .    .    .   .
+            
+            so the vertex that is a *
+            we loop through each x,y and take the vertex that is top-left of that grid.
+            so we'll have to go to mywidth and mydepth, not -1.
+            so * = 1, 1 
+            so we take the grids that are 0,0 + 0,1 + 1,0 + 1,1 and sum up their face normals
+            
+            so once we've calculated all the face normals 
+            we loop through the grid again and calculate the vertex normals
+                
+        */
+        
+        // Calculate ther vertices for the lumpy top terrain only to start with TODO
+        // Has to be + 1 because we do a -1 in there. But we restrict to be < myDepth
+		for (int x = 0; x < myWidth + 1; x++) {
+			for (int z = 0; z < myDepth + 1; z++) {
+                // TODO: Check array bounds max as well as min
+                Point normal = new Point();
+                // Top Left
+                if (x > 0 && z > 0) {
+                    normal.plus(faceNormals[x-1][z-1][0]);
+                    normal.plus(faceNormals[x-1][z-1][1]);
+                }
+                // Top Right
+                if (x > 0 && z < myDepth) {
+                    normal.plus(faceNormals[x-1][z][0]);
+                    normal.plus(faceNormals[x-1][z][1]);
+                }
+                // Bottom Left
+                if (x < myWidth && z > 0) { 
+                    normal.plus(faceNormals[x][z-1][0]);
+                    normal.plus(faceNormals[x][z-1][1]);
+                }
+                // Bottom Right
+                if (x < myWidth && z < myDepth) {
+                    normal.plus(faceNormals[x][z][0]);
+                    normal.plus(faceNormals[x][z][1]);
+                }
+
+                // TODO: Normalize???
+                vertexNormals[x][z] = normal;                
+			}
+    	}
+        
     }
 
     public void draw(GL2 gl) {
@@ -315,22 +412,32 @@ public class Terrain {
 		}
 
 		gl.glBegin(GL2.GL_TRIANGLES);
-		
+        int numTriangles = 0;
 		// Draw each of our pre-calculated triangles
-		for (Triangle triangle : trianglesToDraw) {
-			gl.glNormal3dv(triangle.normal, 0);
-			
+		for (Triangle triangle : trianglesToDraw) {		
 			for (int i = 0; i < 3; i++) {
+                Point position = triangle.points[i];
+                System.out.println("Position = " + position.x + "," + position.z + " . Num drawn = " + numTriangles);
+                double[] normal = vertexNormals[(int)position.x][(int)position.z].doubleVector();
+                // TODO: Calculate normals for more than just the top
+                if (numTriangles < myWidth * myDepth * 2) {
+                    // Use the pre-calculated normal for this vertex
+                    gl.glNormal3dv(normal, 0);
+                } else {
+                    gl.glNormal3i(0, 1, 0); // TODO arbitrary
+                }
+                
 				if (texture) {
 					gl.glTexCoord2d(triangle.textureCoords[i].x, triangle.textureCoords[i].y);
 				} else {
 					gl.glColor3dv(triangle.colors[i].doubleVector(), 0);
 				}
-				gl.glVertex3dv(triangle.points[i].doubleVector(), 0);
+				gl.glVertex3dv(position.doubleVector(), 0);
 			}
-		}
-		
-	    gl.glEnd();    
+            numTriangles++;
+		}		
+	    gl.glEnd();
+         
 	    if (texture) {
 	    	gl.glDisable(gl.GL_TEXTURE_2D);
 	    }
