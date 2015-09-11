@@ -21,9 +21,11 @@ public class Sphere {
 	public Sphere (Point location) {
 		this (location, r.nextDouble(), new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()), r.nextBoolean());
 	}
+	
 	public Sphere (Point location, double radius) {
 		this (location, radius, new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()), r.nextBoolean());
 	}
+	
 	public Sphere (Point location, double radius, Color colors, boolean solidity) {
 		glut = new GLUT();
 		

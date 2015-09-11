@@ -56,15 +56,12 @@ public class Helpers {
 
     public static Point calculateNormal(Point[] points) {
     	
-    	// Cross product method
-    	Point p1 = points[0];
-    	Point p2 = points[1];
-    	Point p3 = points[2];
-    	
-    	Point v = new Point(p2);
-    	Point u = new Point(p3);
-    	u.minus(p1);
-    	v.minus(p1);
+    	// Cross product method - simplest for a triangle
+    	Point u = new Point(points[1]);
+    	u.minus(points[0]);
+        
+        Point v = new Point(points[2]);
+    	v.minus(points[0]);
 
     	Point normal = new Point (u.y * v.z - u.z * v.y,
     						      u.z * v.x - u.x * v.z,
@@ -112,10 +109,9 @@ public class Helpers {
         		Game.day = false;
             	Game.nightStart = System.currentTimeMillis();
             }
-            gl.glEnable(GL2.GL_LIGHT0);
             gl.glDisable(GL2.GL_LIGHT1);
             gl.glDisable(GL2.GL_LIGHT2);
-        	
+            gl.glEnable(GL2.GL_LIGHT0);
         } else {
         	Game.timeLeftInNight = Game.dayLength - (System.currentTimeMillis() - Game.nightStart);
         	Game.fractionThroughNight = ((float)Game.dayLength - (float)Game.timeLeftInNight)/(float)Game.dayLength;
@@ -123,9 +119,9 @@ public class Helpers {
         		Game.day =  true;
         		Game.dayStart = System.currentTimeMillis();
             }
+            gl.glDisable(GL2.GL_LIGHT0);
         	gl.glEnable(GL2.GL_LIGHT2);
     		gl.glEnable(GL2.GL_LIGHT1);
-            gl.glDisable(GL2.GL_LIGHT0);
         }
         
     	if (!Game.dayNightMode){

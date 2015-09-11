@@ -48,7 +48,7 @@ public class DroneCamera extends Camera{
 		eye.z = lookAt.z + distance * Math.sin(Math.toRadians(theta)) * Math.cos(Math.toRadians(phi));
 	
 		// Finds another point on this line along the sphere
-		double dt=1.0;
+		double dt = 1.0;
 		Point eyeTemp = new Point();
 		eyeTemp.x = lookAt.x + distance * Math.sin(Math.toRadians(theta)-dt) * Math.sin(Math.toRadians(phi));
 		eyeTemp.y = lookAt.y + distance * Math.cos(Math.toRadians(theta)-dt);
