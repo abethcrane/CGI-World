@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import beth.weatherworld.Texture;
+import beth.weatherworld.Helpers;
 
 /**
  * COMMENT: Comment HeightMap 
@@ -55,7 +56,7 @@ public class Terrain {
     public Terrain(int width, int depth) {
         myWidth = width;
         myDepth = depth;
-        baseHeight = 0;
+        baseHeight = -2;
         myAltitude = new double[width+1][depth+1];
         myTrees = new ArrayList<Tree>();
         myRoads = new ArrayList<Road>();
@@ -121,8 +122,8 @@ public class Terrain {
         double[][] oldAlt = myAltitude;
         myAltitude = new double[width+1][depth+1];
 
-        for (int x = 0; x < width && x < oldAlt.length; x++) {
-            for (int z = 0; z < depth && z < oldAlt[x].length; z++) {
+        for (int x = 0; x <= width && x < oldAlt.length; x++) {
+            for (int z = 0; z <= depth && z < oldAlt[x].length; z++) {
                 myAltitude[x][z] = oldAlt[x][z];
             }
         }
@@ -157,10 +158,10 @@ public class Terrain {
     
     // The edges of the grids need altitudes so that we can figure out the edge vertex normals
     private void setEdgeAltitudes() {
-        for (int x = 0; x < myWidth; x++) {
+        for (int x = 0; x <= myWidth; x++) {
             myAltitude[x][myDepth] = baseHeight;
         }
-        for (int z = 0; z < myDepth; z++) {
+        for (int z = 0; z <= myDepth; z++) {
             myAltitude[myWidth][z] = baseHeight;
         }
     }
@@ -174,7 +175,7 @@ public class Terrain {
      * @return
      */
     public double altitude(double x, double z) {
-        double altitude = 0;
+        double altitude = baseHeight;
         
         //v1 = a -az + bz;
         //v2 = c -cz + dz;
@@ -264,15 +265,13 @@ public class Terrain {
                 Point bottomRight = new Point(x+1, baseHeight, z+1);
                 
 				// Triangle 1 - top left, bottom left, bottom right
-				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
+				trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
                 // Triangle 2 - bottom right, top right, top left
-                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));	
+                trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));	
 			}
 		}
         
         // TODO: Make this less hackish - better size squares etc
-		// TODO: 2 of these sides will need different normals - because if they point the same way then one is facing inside the island
-		
         // Draw the 2 island sides that are parallel with the x axis: x = 0 and x = width, with z = 0 -> depth
         int[] xSides = {0, myWidth};
 		for (int x : xSides) {
@@ -284,22 +283,12 @@ public class Terrain {
 				Point topRight = new Point(x, myAltitude[x][z+1], z+1);
                 Point bottomRight = new Point(x, baseHeight, z+1);
                 
-                // Clockwise for the first layer, so the normal'll point of the island out not in
-                if (x == 0) {
-                    // Triangle 1 - top left (0, alt, z), top right (0, alt, z+1), bottom right (0, 0, z+1)
-                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));
-                    
-                    // Triangle 2 - bottom right (0, 0, z+1), bottom left (0, 0, z), top left (0, alt, z)
-                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
-                } else {
-                    // Triangle 1 - top left (0, alt, z), bottom left (0, 0, z), bottom right (0, 0, z+1)
+                 // Triangle 1 - top left (0, alt, z), bottom left (0, 0, z), bottom right (0, 0, z+1)
                     trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
                     
-                    // Triangle 2 - bottom right (0, 0, z+1), top right (0, alt, z+1), top left (0, alt, z)
-                    trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
-                }
-                
-                
+                // Triangle 2 - bottom right (0, 0, z+1), top right (0, alt, z+1), top left (0, alt, z)
+                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
+            
 			}
 		}
 		
@@ -313,21 +302,12 @@ public class Terrain {
 				Point topLeft = new Point(x, myAltitude[x][z], z);
 				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
                 Point bottomRight = new Point(x+1, baseHeight, z);
-
-                // Clockwise for the right layer, so the normal'll point of the island out not in
-                if (z == myDepth) {
-                    // Triangle 1 - top left (x, alt, depth), top right (x+1, alt, depth), bottom right (x+1, 0, depth)
-                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));
+                
+                // Triangle 1 - top left (x, alt, depth), top right (x+1, alt, depth), bottom right (x+1, 0, depth)
+                trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false));
                     
-                   // Triangle 2 - bottom right (x+1, 0, depth), bottom left (x, 0, depth), top left (x, alt, depth)
-                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
-                } else {
-                    // Triangle 1 - top left (x, alt, depth), bottom left (x, 0, depth), bottom right (x+1, 0, depth)
-                    trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true));
-                    
-                    // Triangle 2 - bottom right (x+1, 0, depth), top right(x+1, alt, depth), top left (x, alt, depth)
-                    trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false));
-                }
+                // Triangle 2 - bottom right (x+1, 0, depth), bottom left (x, 0, depth), top left (x, alt, depth)
+                trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true));
 			}
 		}        
     }
@@ -392,10 +372,12 @@ public class Terrain {
     public void draw(GL2 gl) {
         
         gl.glMatrixMode(gl.GL_MODELVIEW);
+        gl.glEnable(gl.GL_CULL_FACE);
+        gl.glCullFace(gl.GL_BACK);
         
     	gl.glPushMatrix();
 
-		gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL);
+		gl.glPolygonMode(gl.GL_FRONT, gl.GL_FILL);
     	gl.glPolygonOffset(0,0);
 		
 		if (texture) {
@@ -410,6 +392,10 @@ public class Terrain {
 			gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
 			gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT);
 		}
+        
+		gl.glMaterialfv(gl.GL_FRONT, gl.GL_AMBIENT, Helpers.dayAmbient, 0);
+		gl.glMaterialfv(gl.GL_FRONT, gl.GL_DIFFUSE, Helpers.diffuse, 0);
+        gl.glMaterialf(gl.GL_FRONT, gl.GL_SHININESS, 10f);
 
 		gl.glBegin(GL2.GL_TRIANGLES);
         int numTriangles = 0;
@@ -448,7 +434,8 @@ public class Terrain {
         for (Road road : myRoads) {
         	road.draw(gl, this);
         }
-
+        
+        gl.glDisable(gl.GL_CULL_FACE);
         gl.glPopMatrix();
 	
     }

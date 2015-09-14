@@ -60,7 +60,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     // Toggle whether we start in day or night mode
     public static boolean day = true;
     public static boolean dayNightMode = true;
-    public static long dayLength = 24*60*60; // 24 seconds in a day, 24 seconds in a night, as opposed to 24 hours all up
+    public static long dayLength = 5*60*60; // 24 seconds in a day, 24 seconds in a night, as opposed to 24 hours all up
     public static long dayStart;
     public static long nightStart;
     public static long timeLeftInDay;
@@ -336,7 +336,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		gl.glMateriali(gl.GL_FRONT, gl.GL_SHININESS, 50);
 		
     	// If it's day we update the camera first before the global light
-		if (day) {
+		if (true/*day*/) {
 			// Update the Cameras
 			if (usingDrone) {
 				myDrone.use(gl,glu);
