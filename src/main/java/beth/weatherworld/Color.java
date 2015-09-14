@@ -62,7 +62,7 @@ public class Color {
 		b = b + c.b;
 	}
 	
-	public void multiplg (Color c) {
+	public void multiply (Color c) {
 		r = r * c.r;
 		g = g * c.g;
 		b = b * c.b;
@@ -74,5 +74,22 @@ public class Color {
 		b = b / c.b;
 	}
 	
+	public void scalarMultiply (float f) {
+		r = r * f;
+		g = g * f;
+		b = b * f;
+	}
+	
+	public void scalarPlus (float f) {
+		r = r + f;
+		g = g + f;
+		b = b + f;
+	}
+	
+	public void scalarMinus (float f) {
+		r = r - f;
+		g = g - f;
+		b = b - f;
+	}
 	
 }
