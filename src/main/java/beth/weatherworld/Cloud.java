@@ -1,5 +1,6 @@
 package beth.weatherworld;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -20,10 +21,11 @@ public class Cloud {
 	static double max = 40;
 	private List<Sphere> mySpheres;
 	private int numSpheres;
+	float alpha = 0.6f;
 	
 	// Randomly positions the cloud in the sky
 	public Cloud (Terrain t) {
-		this (t, new Point(min + (max - min) * r.nextDouble(), min + (max - min) * r.nextDouble(), min + (max - min) * r.nextDouble()));
+		this (t, createPoint());
 	}
 
 	public Cloud (Terrain t, Point p) {
@@ -33,6 +35,7 @@ public class Cloud {
 		myTerrain = t;
 		updateWeather();
 		addSpheres();
+		alpha = r.nextFloat();
 	}
 	
 	// Randomly allocates raindrops to a sphere in the cloud so that they come from all over the cloud
@@ -72,9 +75,12 @@ public class Cloud {
 	public void draw(GL2 gl) {
 		GLUT glut = new GLUT();
 		gl.glPushMatrix();
+			gl.glEnable (gl.GL_BLEND);
+			gl.glBlendFunc(gl.GL_SRC_ALPHA,gl.GL_ONE);  //define blending factors
 	    	for (Sphere sphere : mySpheres) {
 	    		sphere.draw(gl);
 	    	}
+			gl.glDisable(gl.GL_BLEND);
 		gl.glPopMatrix();
 		updateRaindrops(gl);
 	}
@@ -107,5 +113,19 @@ public class Cloud {
 		if (p.y < 0) {
 			raining = false;
 		}
+	}
+	
+	private static Point createPoint() {
+		double x = 0;
+		double y = 0;
+		double z = 0;
+		
+		while (Math.sqrt((x*x) + (y*y) + (z*z)) < Math.abs(20)) {
+			x = min + (max - min) * r.nextDouble();
+			y = min + (max - min) * r.nextDouble();
+			z = min + (max - min) * r.nextDouble();
+		}
+		
+		return new Point(x,y,z);
 	}
 }

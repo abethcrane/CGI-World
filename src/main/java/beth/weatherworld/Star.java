@@ -16,10 +16,9 @@ public class Star extends Sphere{
 	boolean solid = false;
 
 	public Star () {
-		this (new Point(min + (max - min) * r.nextDouble(), min + (max - min) * r.nextDouble(), min + (max - min) * r.nextDouble()),
-			  r.nextDouble(),
-			  new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()));
+		this (createPoint(), r.nextDouble(), new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()));
 	}
+	
 	public Star (Point location) {
 		this (location, r.nextDouble(), new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()));
 	}
@@ -40,6 +39,19 @@ public class Star extends Sphere{
 		}
 		
 	}
-
 	
+	private static Point createPoint() {
+		double x = 0;
+		double y = 0;
+		double z = 0;
+		
+		while (Math.sqrt((x*x) + (y*y) + (z*z)) < Math.abs(20)) {
+			x = min + (max - min) * r.nextDouble();
+			y = min + (max - min) * r.nextDouble();
+			z = min + (max - min) * r.nextDouble();
+		}
+		
+		return new Point(x,y,z);
+	}
+
 }
