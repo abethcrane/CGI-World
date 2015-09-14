@@ -16,6 +16,7 @@ public class Sphere {
 	private boolean solid;
 	protected Point p;
 	protected Color c;
+	protected float alpha = 1f;
 	private GLUT glut;
 	
 	public Sphere (Point location) {
@@ -43,10 +44,10 @@ public class Sphere {
 		gl.glPushMatrix();
 			gl.glTranslated(p.x, p.y, p.z);
 			if (solid) {
-				gl.glColor3dv(c.doubleVector(), 0);
+				gl.glColor4d(c.r, c.g, c.b, alpha);
 				glut.glutSolidSphere(radius, slices, stacks);
 			} else {
-				gl.glColor3dv(c.doubleVector(), 0);
+				gl.glColor4d(c.r, c.g, c.b, alpha);
 				glut.glutWireSphere(radius, slices, stacks);		
 			}
 		gl.glPopMatrix();
