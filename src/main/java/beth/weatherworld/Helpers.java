@@ -12,6 +12,12 @@ public class Helpers {
 	public static Color deepBlue = new Color (0, 0, 1);
 	public static Color midnightBlue = new Color (0.1f, 0.1f, 0.3f);
 	public static Color black =  new Color (0, 0, 0);
+	
+	public static float[] dayAmbient = {0.4f, 0.4f, 0.4f, 1};
+    public static float[] nightAmbient = {0.1f, 0.1f, 0.1f, 1}; // low ambient light
+	public static float[] diffuse = {0.4f, 0.4f, 0.4f, 1}; // full diffuse colour
+	public static float daySpecular[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+	public static float[] nightSpecular = {0.9f, 0.9f, 0.9f, 1}; 
 
 	public static Color getColor(float[] dayTimings, Color[] dayColors, float[] nightTimings, Color[] nightColors) {	
 		// Takes in two colour arrays and 2 float arrays, and then depending on time returns the appropriate colour value
@@ -98,8 +104,8 @@ public class Helpers {
     	return v;
     }
 
-    public static void updateDayNight(GL2 gl) {
-    	
+    public static boolean updateDayNight(GL2 gl) {
+    	boolean changed = false; 
     	// The time left is calculated based on the time diff between our start time and now.
     	// Appropriate lights are then enabled and disabled.
         if (Game.day) {
@@ -107,26 +113,24 @@ public class Helpers {
         	Game.fractionThroughDay = ((float)Game.dayLength - (float)Game.timeLeftInDay)/(float)Game.dayLength;
         	if (Game.timeLeftInDay <= 0) {
         		Game.day = false;
+				changed = true;
             	Game.nightStart = System.currentTimeMillis();
             }
-            gl.glDisable(GL2.GL_LIGHT1);
-            gl.glDisable(GL2.GL_LIGHT2);
-            gl.glEnable(GL2.GL_LIGHT0);
         } else {
         	Game.timeLeftInNight = Game.dayLength - (System.currentTimeMillis() - Game.nightStart);
         	Game.fractionThroughNight = ((float)Game.dayLength - (float)Game.timeLeftInNight)/(float)Game.dayLength;
         	if (Game.timeLeftInNight <= 0) {
         		Game.day =  true;
+				changed = true;
         		Game.dayStart = System.currentTimeMillis();
             }
-            gl.glDisable(GL2.GL_LIGHT0);
-        	gl.glEnable(GL2.GL_LIGHT2);
-    		gl.glEnable(GL2.GL_LIGHT1);
         }
         
     	if (!Game.dayNightMode){
     		Game.fractionThroughDay = 0.5f;
     		Game.timeLeftInDay = (long) (-1 * (Game.dayLength * Game.fractionThroughDay - Game.dayLength));
     	}
+		
+		return changed;
     }
 }
