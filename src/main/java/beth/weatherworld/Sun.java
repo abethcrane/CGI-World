@@ -56,13 +56,13 @@ public class Sun extends Star {
 		p.y = Math.cos(Math.toRadians(angle)) * distance;
 		
 		if (!Game.dayNightMode) {
-			p = sunlight;
-			p.scalarMultiply(-30);
+			p = new Point(5, -10, 5);
 		}
 	}
 
 	public void draw(GL2 gl, Point s) {
 		update(s);
+		gl.glDisable(GL2.GL_LIGHTING);
 		myTexture = (Texture) Game.myTextures.get("sun2");
 		if (myTexture != null) {
 	    	gl.glBindTexture(gl.GL_TEXTURE_2D, myTexture.getTextureID());
@@ -87,6 +87,7 @@ public class Sun extends Star {
 	    	glu.gluSphere(q, radius, slices, stacks);
 	    	gl.glDisable(gl.GL_TEXTURE_2D);
 		gl.glPopMatrix();
+		gl.glEnable(GL2.GL_LIGHTING);
 
 	}
 
