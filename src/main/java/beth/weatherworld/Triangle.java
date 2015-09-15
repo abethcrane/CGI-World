@@ -7,12 +7,16 @@ import beth.weatherworld.Point;
 
 // Stores 3 points to draw into a triangle, to save having to generate these each update/draw
 public class Triangle {
-
+    public enum TriangleFace {
+        TOP, BOTTOM, XMIN, XMAX, ZMIN, ZMAX
+    }
+	
 	public Point[] points;
 	public Color[] colors;
 	public Coordinate[] textureCoords;
+	public TriangleFace faceType;
 	
-	public Triangle (Point p1, Point p2, Point p3, boolean bottomLeft) {
+	public Triangle (Point p1, Point p2, Point p3, boolean bottomLeft, TriangleFace type) {
 		points = new Point[3];
 		points[0] = p1;
 		points[1] = p2;
@@ -35,5 +39,7 @@ public class Triangle {
 			textureCoords[1] = new Coordinate(1,1);
 			textureCoords[2] = new Coordinate(0,1);
 		}
+		
+		faceType = type;
 	}
 }
