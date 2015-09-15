@@ -23,7 +23,7 @@ public class Sun extends Star {
 		super(new Point(0, 0, 0), 1, new Color(1, 0.5, 0), true);
 		
 		// Distance is easily changeable
-		distance = 20;
+		distance = 19;
 		// Goes from West to East
 		if (Game.day) {
 			angle = 90;
@@ -63,7 +63,6 @@ public class Sun extends Star {
 
 	public void draw(GL2 gl, Point s) {
 		update(s);
-		
 		myTexture = (Texture) Game.myTextures.get("sun2");
 		if (myTexture != null) {
 	    	gl.glBindTexture(gl.GL_TEXTURE_2D, myTexture.getTextureID());

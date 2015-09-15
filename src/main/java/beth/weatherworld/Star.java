@@ -37,7 +37,21 @@ public class Star extends Sphere{
 		if (!solid) {
 			c.reset(1, 1, 1);
 		}
-		
+	}
+	
+	public void draw (GL2 gl) {
+		gl.glDisable(GL2.GL_LIGHTING);
+		gl.glPushMatrix();
+			gl.glTranslated(p.x, p.y, p.z);
+			if (solid) {
+				gl.glColor4d(c.r, c.g, c.b, alpha);
+				glut.glutSolidSphere(radius, slices, stacks);
+			} else {
+				gl.glColor4d(c.r, c.g, c.b, alpha);
+				glut.glutWireSphere(radius, slices, stacks);		
+			}
+		gl.glPopMatrix();
+		gl.glEnable(GL2.GL_LIGHTING);
 	}
 	
 	private static Point createPoint() {
@@ -45,7 +59,7 @@ public class Star extends Sphere{
 		double y = 0;
 		double z = 0;
 		
-		while (Math.sqrt((x*x) + (y*y) + (z*z)) < Math.abs(20)) {
+		while (Math.sqrt((x*x) + (y*y) + (z*z)) < 30) {
 			x = min + (max - min) * r.nextDouble();
 			y = min + (max - min) * r.nextDouble();
 			z = min + (max - min) * r.nextDouble();
