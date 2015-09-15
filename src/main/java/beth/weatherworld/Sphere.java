@@ -17,7 +17,7 @@ public class Sphere {
 	protected Point p;
 	protected Color c;
 	protected float alpha = 1f;
-	private GLUT glut;
+	protected GLUT glut;
 	
 	public Sphere (Point location) {
 		this (location, r.nextDouble(), new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()), r.nextBoolean());
