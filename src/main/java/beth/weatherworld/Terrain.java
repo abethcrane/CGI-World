@@ -403,6 +403,8 @@ public class Terrain {
         gl.glPolygonMode(gl.GL_FRONT, gl.GL_FILL);
         gl.glPolygonOffset(0,0);
 
+        gl.glColor4d(1f, 1f, 1f, 1f);
+
         if (texture) {
             gl.glEnable(gl.GL_TEXTURE_2D);
             myTexture = (Texture) Game.myTextures.get("grass");
