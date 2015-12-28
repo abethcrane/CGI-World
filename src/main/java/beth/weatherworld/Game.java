@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JFrame;
+import java.text.SimpleDateFormat;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -32,31 +33,26 @@ import org.json.JSONException;
 import beth.weatherworld.Texture;
 import beth.weatherworld.LevelIO;
 
-/**
- * COMMENT: Comment Game 
- *
- * @author malcolmr
- */
 public class Game extends JFrame implements KeyListener, MouseMotionListener, GLEventListener {
 
     private Terrain myTerrain;
     private Sky mySky;
-    
+
     private DroneCamera myDrone;
     private PersonCamera myPersonCam;
     private boolean usingDrone = true;
     private boolean usingPerson = false;
-    
+
     private Person myPerson;
-    
+
     private GL2 gl;
     private GLU glu = new GLU();
-    
+
     private static final float FOV = 90;
-    
+
     private int myWidth = 1920;
     private int myHeight = 1080;
-    
+
     // Toggle whether we start in day or night mode
     public static boolean day = true;
     public static boolean dayNightMode = true;
@@ -67,22 +63,22 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     public static long timeLeftInNight;
     public static float fractionThroughDay;
     public static float fractionThroughNight;
-    
+
     // Colour specifications for the background
     private float[] dayTimings = new float[] {0.15f, 0.19f, 0.4f, 1.15f, 0.65f, 0.98f, 1.0f};
     private Color[] dayColors = new Color[] {Helpers.orange, Helpers.pink, Helpers.brightBlue, Helpers.brightBlue, Helpers.pink, Helpers.orange, Helpers.deepBlue};
     private float[] nightTimings = new float[] {0.1f, 0.3f, 0.6f, 0.8f, 0.95f, 1.0f};
-    private Color[] nightColors = new Color[] {Helpers.deepBlue, Helpers.midnightBlue, Helpers.black, Helpers.midnightBlue, Helpers.deepBlue, Helpers.orange};    
-    
+    private Color[] nightColors = new Color[] {Helpers.deepBlue, Helpers.midnightBlue, Helpers.black, Helpers.midnightBlue, Helpers.deepBlue, Helpers.orange};
+
     // Light specifications
     float[] dayAmbient = {0.5f, 0.5f, 0.5f, 1};
     float[] nightAmbient = {0.1f, 0.1f, 0.1f, 1}; // low ambient light
 	float[] diffuse = {1,1,1,1}; // full diffuse colour
 	float daySpecular[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-	float[] nightSpecular = {0.9f, 0.9f, 0.9f, 1}; 
-	
+	float[] nightSpecular = {0.9f, 0.9f, 0.9f, 1};
+
 	public static Map myTextures;
-	
+
     public Game(Terrain t) {
     	super ("Weatherworld");
         myTerrain = t;
@@ -90,38 +86,38 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
         mySky = new Sky(myTerrain);
         myTextures = new HashMap<String, Texture>();
     }
-    
+
     /**
      * Load a level file and display it.
-     * 
+     *
      * @param args - The first argument is a level file in JSON format
      * @throws FileNotFoundException
      */
     public static void main(String[] args) throws FileNotFoundException, IOException, JSONException {
     	dayStart = System.currentTimeMillis();
     	nightStart = System.currentTimeMillis();
-		
+
 		Terrain terrain;
-		
+
 		if (args.length > 0) {
     		terrain = LevelIO.load(new File(args[0]));
 		} else {
 			terrain = LevelIO.generate();
-			Date d = new Date(System.currentTimeMillis());
-			File f = new File("levels/" + d.toString() + "-levelFile.json");
+            String d = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss").format(System.currentTimeMillis());
+			File f = new File("levels/" + d + "-levelFile.json");
 			LevelIO.save(terrain, f);
 		}
-		
+
         terrain.initialize();
 
         Game game = new Game(terrain);
         game.run();
     }
-    
+
 	@Override
 	public void init(GLAutoDrawable arg0) {
         gl = arg0.getGL().getGL2();
-        
+
         // Enable standard things - these are enabled and disabled in relevant places
         gl.glEnable(GL2.GL_DEPTH_TEST);
         gl.glEnable(GL2.GL_LIGHTING);
@@ -129,7 +125,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     	gl.glEnable(GL2.GL_POLYGON_OFFSET_FILL);
     	gl.glEnable(GL2.GL_NORMALIZE);
 		gl.glFrontFace(GL2.GL_CCW);
-		
+
 		gl.glShadeModel(GL2.GL_SMOOTH);
 
     	// Read the textures in and store them in a dictionary
@@ -142,8 +138,8 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
     	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/road.png", "png"), "road");
     	addTexture(new Texture(GLProfile.getDefault(), gl, "/Users/beth/Dropbox/projects/weatherworld/src/main/resources/textures/grass.jpg", "jpg"), "grass");
 	}
-    
-    /** 
+
+    /**
      * Run the game.
      *
      */
@@ -159,7 +155,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
         panel.setFocusable(true);
         panel.requestFocus();
 
-        // Add an animator to call 'display' at 60fps        
+        // Add an animator to call 'display' at 60fps
         FPSAnimator animator = new FPSAnimator(60);
         animator.add(panel);
         animator.start();
@@ -169,8 +165,8 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		// TODO: Make this full screen
         setSize(1920, 1080);
         setVisible(true);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);  
-        
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
         // Sets the center point of the terrain and makes the camera and avatar
         Point c = new Point(myTerrain.center);
         myDrone = new DroneCamera(new Point(c.x, c.y + 10, c.z), c);
@@ -221,11 +217,11 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		// Toggles the texture of the terrain
 		if (key == KeyEvent.VK_T) {
 			myTerrain.texture = myTerrain.texture == true ? false : true;
-		}	
+		}
 		// Toggles day night mode on and off
 		if (key == KeyEvent.VK_N) {
 			dayNightMode = dayNightMode == true ? false : true;
-		}	
+		}
 	}
 
 	@Override
@@ -259,7 +255,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		if (key == KeyEvent.VK_COMMA) {
 			myPersonCam.slower = false;
 			myDrone.slower = false;
-		}		
+		}
 	}
 
 	@Override
@@ -271,10 +267,10 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 	public void display(GLAutoDrawable drawable) {
         gl = drawable.getGL().getGL2();
 		gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE);
-		
+
         // Update the clock
         boolean dayChanged = Helpers.updateDayNight(gl);
-        
+
         // Set background colour
 		// TODO: This isn't quite right.
 		// Lerp alert
@@ -284,16 +280,17 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		} else {
 			back.scalarMinus(0.5f-Math.abs(0.5f-fractionThroughNight));
 		}
-		
+
 		gl.glClearColor((float)back.r, (float)back.g, (float)back.b, 1);
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
-		
+
 		// Set up a background!
 		Color c = Helpers.brightBlue;
         if (dayNightMode) {
-        	c = Helpers.getColor(dayTimings, dayColors, nightTimings, nightColors);	
+        	c = Helpers.getColor(dayTimings, dayColors, nightTimings, nightColors);
         }
-		
+
+		// Draw the background fullscreen rects
 		gl.glDisable(GL2.GL_DEPTH_TEST);
 		gl.glDisable(GL2.GL_LIGHTING);
 		gl.glMatrixMode (gl.GL_MODELVIEW);
@@ -303,14 +300,14 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		gl.glPushMatrix ();
 		gl.glLoadIdentity ();
 		gl.glEnable(gl.GL_BLEND);
-		gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA); 
+		gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 		gl.glBegin(gl.GL_QUADS);
 		gl.glColor4f(back.r, back.g, back.b, 1f);
 		gl.glVertex3i (-1, -1, 0);
 		gl.glVertex3i (1, -1, 0);
 		gl.glVertex3i (1, 1, 0);
 		gl.glVertex3i (-1, 1, 0);
-		gl.glColor4f(c.r, c.g, c.b, 0.5f);
+		gl.glColor4f(c.r, c.g, c.b, 0.7f);
 		gl.glVertex3i (-1, -1, 0);
 		gl.glVertex3i (1, -1, 0);
 		gl.glVertex3i (1, 1, 0);
@@ -322,45 +319,45 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		gl.glPopMatrix ();
 		gl.glEnable(GL2.GL_DEPTH_TEST);
 		gl.glEnable(GL2.GL_LIGHTING);
-        
+
 		// Update the camera positions - don't change the view yet though
 		myPersonCam.update(myTerrain);
         myPerson.update(gl, myPersonCam, myTerrain);
 		// TODO: Uncertain if this will give a good experience
 		myDrone.update();
-		
+
 		// Good Default
 		gl.glMaterialfv(gl.GL_FRONT, gl.GL_SPECULAR, Helpers.daySpecular, 0);
 		gl.glMaterialfv(gl.GL_FRONT, gl.GL_AMBIENT, Helpers.dayAmbient, 0);
 		gl.glMaterialfv(gl.GL_FRONT, gl.GL_DIFFUSE, Helpers.diffuse, 0);
 		gl.glMateriali(gl.GL_FRONT, gl.GL_SHININESS, 50);
-		
+
     	// If it's day we update the camera first before the global light
-		if (true/*day*/) {
+		if (day) {
 			// Update the Cameras
 			if (usingDrone) {
 				myDrone.use(gl,glu);
 			} else if (usingPerson) {
 				myPersonCam.use(gl,glu);
 			}
-			
+
 			setDayLights(gl);
 		} else {
-			setNightLights(gl);
-			
 			// Update the Cameras
 			if (usingDrone) {
 				myDrone.use(gl,glu);
 			} else if (usingPerson) {
 				myPersonCam.use(gl,glu);
 			}
+
+            setNightLights(gl);
 		}
-    	
+
     	// Draw the sky first (so clouds don't get in the way when we look at the terrain)
         mySky.draw(gl);
         // Draw the terrain
         myTerrain.draw(gl);
-        
+
         if (usingPerson) {
         	myPerson.update(gl, myPersonCam, myTerrain);
         }
@@ -370,19 +367,19 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 	@Override
 	public void dispose(GLAutoDrawable arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
             int height) {
         gl = drawable.getGL().getGL2();
-        
+
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
 
         double aspect = 1.0 * width / height;
-        
+
         myWidth = width;
         myHeight = height;
         glu.gluPerspective(FOV, aspect, 0.1, 100);
@@ -395,14 +392,14 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// Updates the drone camera (controllable by mouse)	
+		// Updates the drone camera (controllable by mouse)
 		myDrone.mouseMove(e.getX(), e.getY(), myWidth, myHeight);
 	}
-	
+
     public void addTexture(Texture texture, String s) {
     	myTextures.put(s, texture);
     }
-	
+
     public void background () {
     	//Attempt at making a gradient background. Failed :(
         gl.glMatrixMode(gl.GL_MODELVIEW);
@@ -411,7 +408,7 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		Point p2 = new Point (-1, 1, 0);
 		Point p3 = new Point (1, 1, 0);
 		Point p4 = new Point (1, -1, 0);
-		
+
 		gl.glBegin(gl.GL_QUADS);
 			gl.glColor3dv(Helpers.pink.doubleVector(), 0);
 			gl.glVertex3dv(p1.doubleVector(), 0);
@@ -424,41 +421,42 @@ public class Game extends JFrame implements KeyListener, MouseMotionListener, GL
 		gl.glEnd();
 		gl.glMatrixMode(gl.GL_PROJECTION);
     }
-    
+
 	// TODO: Why are my lights travelling through surfaces? Bottom of island shouldn't be lit at day
 	// Lights are enabled and disabled when we set day or night in Helpers
     void setDayLights(GL2 gl) {
 		gl.glDisable(gl.GL_LIGHT2);
 		gl.glEnable(gl.GL_LIGHT0);
-			
+		gl.glEnable(gl.GL_LIGHT1);
+
     	// We could use myTerrain.getSunlight() here instead if we wanted the map one
 		gl.glLightfv(gl.GL_LIGHT0, gl.GL_AMBIENT, Helpers.dayAmbient, 0);
 		gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, Helpers.diffuse, 0);
     	gl.glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, mySky.mySun.p.floatVector(), 0);
 		gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, Helpers.daySpecular, 0);
 		gl.glLightfv(gl.GL_LIGHT1, gl.GL_SPOT_DIRECTION, mySky.mySun.p.floatVector(), 0);
-		
+
 	    gl.glLightf(gl.GL_LIGHT1,gl.GL_SPOT_CUTOFF,30f); // Very narrow
 	    gl.glLightf(gl.GL_LIGHT1,gl.GL_SPOT_EXPONENT, 128f); // Very bright
     }
-    
+
     void setNightLights(GL2 gl) {
 		gl.glDisable(GL2.GL_LIGHT0);
 		gl.glEnable(GL2.GL_LIGHT1);
 		gl.glEnable(GL2.GL_LIGHT2);
-		
+
     	// Get the position of the camera
 		float[] cp = myPersonCam.getPosition();
 		gl.glLightfv(gl.GL_LIGHT1, gl.GL_POSITION, new float[] {cp[0], cp[1], cp[2], 1}, 0);
 		// Get the vector between camera looking at and camera position
 		float[] la = myPersonCam.getDirection();
 		gl.glLightfv(gl.GL_LIGHT1, gl.GL_SPOT_DIRECTION, new float[] {la[0], la[1], la[2], 1} ,1);
-		
+
 	    gl.glLightf(gl.GL_LIGHT1,gl.GL_SPOT_CUTOFF,10f); // Very narrow
 	    gl.glLightf(gl.GL_LIGHT1,gl.GL_SPOT_EXPONENT, 128f); // Very bright
-	    
+
 		gl.glLightfv(gl.GL_LIGHT1, gl.GL_QUADRATIC_ATTENUATION, new float[] {1f},0);
-	    
+
 		gl.glLightfv(gl.GL_LIGHT2, gl.GL_AMBIENT, Helpers.nightAmbient, 0);
 		gl.glLightfv(gl.GL_LIGHT2, gl.GL_SPECULAR, Helpers.nightSpecular, 0);
 		gl.glMaterialfv(gl.GL_FRONT,gl.GL_SPECULAR, Helpers.nightSpecular,0);

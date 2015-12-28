@@ -17,19 +17,15 @@ import org.json.JSONTokener;
 
 import beth.weatherworld.Point;
 
-/**
- * COMMENT: Comment LevelIO 
- *
- * @author malcolmr
- */
+
 public class LevelIO {
 
     /**
      * Load a terrain object from a JSON file
-     * 
+     *
      * @param mapFile
      * @return
-     * @throws FileNotFoundException 
+     * @throws FileNotFoundException
      */
     public static Terrain load(File mapFile) throws FileNotFoundException, JSONException {
         Reader in = new FileReader(mapFile);
@@ -45,7 +41,7 @@ public class LevelIO {
         float dy = (float)jsonSun.getDouble(1);
         float dz = (float)jsonSun.getDouble(2);
         terrain.setSunlightDir(dx, dy, dz);
-       
+
         JSONArray jsonAltitude = jsonTerrain.getJSONArray("altitude");
         for (int i = 0; i < jsonAltitude.length(); i++) {
             int x = i % width;
@@ -64,77 +60,77 @@ public class LevelIO {
                 terrain.addTree(x, z);
             }
         }
-        
+
         if (jsonTerrain.has("roads")) {
             JSONArray jsonRoads = jsonTerrain.getJSONArray("roads");
             for (int i = 0; i < jsonRoads.length(); i++) {
                 JSONObject jsonRoad = jsonRoads.getJSONObject(i);
                 double w = jsonRoad.getDouble("width");
-                
+
                 JSONArray jsonSpline = jsonRoad.getJSONArray("spline");
                 Point[] spline = new Point[jsonSpline.length()];
-                
+
                 for (int j = 0; j < jsonSpline.length(); j += 2) {
                     spline[j] = new Point(jsonSpline.getDouble(j), 0, jsonSpline.getDouble(j+1));
                 }
                 terrain.addRoad(w, spline);
             }
         }
-        
+
         return terrain;
     }
-    
+
     public static Terrain generate() {
         Random rand = new Random();
-        
+
         int width = rand.nextInt(20) + 3;
         int depth = rand.nextInt(20) + 3;
         Terrain terrain = new Terrain(width, depth);
-        
+
         float dx = rand.nextInt();
         float dy = rand.nextInt();
         float dz = rand.nextInt();
         terrain.setSunlightDir(dx, dy, dz);
-        
+
         // TODO: Set hills and then lerp out around them. Given them a height and maybe a width?
-        
+
         Double prevAltitude = 3.0;
         for (int x = 0; x < width; x++) {
            for (int z = 0; z < depth; z++) {
                // Combine squares around you to get an average
-               prevAltitude = (terrain.getGridAltitude(x-1, z) + 
+               prevAltitude = (terrain.getGridAltitude(x-1, z) +
                                terrain.getGridAltitude(x, z-1) +
                                terrain.getGridAltitude(x-1, z-1) +
                                terrain.getGridAltitude(x-1, z+1)) / 4;
               // Negative change, 0 change or positive change
               prevAltitude += (rand.nextInt(3)-1) * (rand.nextDouble()) / 2;
-              terrain.setGridAltitude(x, z, prevAltitude);
+              terrain.setGridAltitude(x, z, Math.min(0,prevAltitude));
            }
         }
-       
+
         int numTrees = rand.nextInt(Math.max(1,width*depth/10));
         for (int i = 0; i < numTrees; i++) {
             double x = rand.nextDouble() * rand.nextInt(width-2) + 1;
             double z = rand.nextDouble() * rand.nextInt(depth-2) + 1;
             terrain.addTree(x, z);
         }
-        
+
         boolean hasRoads = rand.nextBoolean();
         int numRoads = 1; // TODO: Make rand.nextInt(4);
         if (hasRoads) {
             for (int i = 0; i < numRoads; i++) {
                 double w = rand.nextDouble();
-                
+
                 // TODO: How many splines can a road have?
                 int splineLength = 4;
                 Point[] spline = new Point[splineLength];
-                
+
                 for (int j = 0; j < splineLength; j++) {
                     double x = rand.nextDouble() * Math.min(width, depth);
                     double z = rand.nextDouble() * Math.min(width, depth);
                     spline[j] = new Point(x, 0, z);
                 }
-                
+
                 terrain.addRoad(w, spline);
             }
         }
@@ -143,9 +139,9 @@ public class LevelIO {
 
     /**
      * Write Terrain to a JSON file
-     * 
+     *
      * @param file
-     * @throws IOException 
+     * @throws IOException
      */
     public static void save(Terrain terrain, File file) throws IOException, JSONException {
         JSONObject json = new JSONObject();
@@ -161,7 +157,7 @@ public class LevelIO {
         jsonSun.put(sunlight[1]);
         jsonSun.put(sunlight[2]);
         json.put("sunlight", jsonSun);
-        
+
         JSONArray altitude = new JSONArray();
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < depth; j++) {
@@ -169,7 +165,7 @@ public class LevelIO {
             }
         }
         json.put("altitude", altitude);
-        
+
         JSONArray trees = new JSONArray();
         for (Tree t : terrain.trees()) {
             JSONObject j = new JSONObject();
@@ -184,16 +180,16 @@ public class LevelIO {
         for (Road r : terrain.roads()) {
             JSONObject j = new JSONObject();
             j.put("width", r.width());
-            
+
             JSONArray spline = new JSONArray();
             int numPoints = r.numPoints();
             Point[] points = r.points();
-            
+
             for (int i = 0; i < numPoints; i++) {
                 spline.put(points[i].x);
                 spline.put(points[i].z);
             }
-            
+
             j.put("spline", spline);
             roads.put(j);
         }
@@ -204,12 +200,12 @@ public class LevelIO {
         out.close();
 
     }
-    
+
     /**
      * For testing.
-     * 
+     *
      * @param args
-     * @throws IOException 
+     * @throws IOException
      */
     public static void main(String[] args) throws IOException, JSONException {
         Terrain terrain = LevelIO.load(new File(args[0]));

@@ -26,11 +26,6 @@ import beth.weatherworld.Helpers;
 import beth.weatherworld.Texture;
 import beth.weatherworld.Triangle.TriangleFace;
 
-/**
- * COMMENT: Comment HeightMap 
- *
- * @author malcolmr
- */
 public class Terrain {
 
     private int myWidth;
@@ -43,7 +38,7 @@ public class Terrain {
     static Point center;
     Texture myTexture;
     public boolean texture = true;
-    
+
     private List<Triangle> trianglesToDraw;
     private Point[][][] faceNormals;
     private Point[][] vertexNormals;
@@ -67,22 +62,22 @@ public class Terrain {
         myTrees = new ArrayList<Tree>();
         myRoads = new ArrayList<Road>();
         trianglesToDraw = new ArrayList<Triangle>();
-        
+
         center = new Point(width/2, 0, depth/2);
         faceNormals = new Point[width+1][depth+1][2];
-        vertexNormals = new Point[width+2][depth+2];        
+        vertexNormals = new Point[width+2][depth+2];
     }
-    
+
     public void initialize() {
         setCenter();
         setEdgeAltitudes();
         calculateTriangles();
     }
-    
+
     public int width() {
         return myWidth;
     }
-    
+
     public int depth() {
         return myDepth;
     }
@@ -98,16 +93,16 @@ public class Terrain {
     public Point getSunlight() {
         return new Point(mySunlight);
     }
-    
+
     public int baseHeight() {
         return baseHeight;
     }
 
     /**
-     * Set the sunlight direction. 
-     * 
+     * Set the sunlight direction.
+     *
      * Note: the sun should be treated as a directional light, without a position
-     * 
+     *
      * @param dx
      * @param dy
      * @param dz
@@ -115,10 +110,10 @@ public class Terrain {
     public void setSunlightDir(float dx, float dy, float dz) {
         mySunlight = new Point(dx, dy, dz);
     }
-    
+
     /**
-     * Resize the terrain, copying any old altitudes. 
-     * 
+     * Resize the terrain, copying any old altitudes.
+     *
      * @param width
      * @param depth
      */
@@ -133,13 +128,13 @@ public class Terrain {
                 myAltitude[x][z] = oldAlt[x][z];
             }
         }
-        
+
         setCenter();
     }
 
     /**
      * Get the altitude at a grid point
-     * 
+     *
      * @param x
      * @param z
      * @return
@@ -153,7 +148,7 @@ public class Terrain {
 
     /**
      * Set the altitude at a grid point
-     * 
+     *
      * @param x
      * @param z
      * @return
@@ -161,7 +156,7 @@ public class Terrain {
     public void setGridAltitude(int x, int z, double h) {
         myAltitude[x][z] = Math.max(baseHeight, h);
     }
-    
+
     // The edges of the grids need altitudes so that we can figure out the edge vertex normals
     private void setEdgeAltitudes() {
         for (int x = 0; x <= myWidth; x++) {
@@ -173,22 +168,21 @@ public class Terrain {
     }
 
     /**
-     * Get the altitude at an arbitrary point. 
+     * Get the altitude at an arbitrary point.
      * Non-integer points should be interpolated from neighbouring grid points
-
      * @param x
      * @param z
      * @return
      */
     public double altitude(double x, double z) {
         double altitude = baseHeight;
-        
+
         //v1 = a -az + bz;
         //v2 = c -cz + dz;
         //v3 = v1 -v1x + v2x
-        
+
         if (Math.floor(x) < 0 || Math.floor(z) < 0 || Math.ceil(x) >= myWidth || Math.ceil(z) >= myDepth) {
-        	return altitude;
+            return altitude;
         }
 
         try {
@@ -196,24 +190,24 @@ public class Terrain {
             int rightX = (int) Math.ceil(x);
             int farZ = (int)Math.floor(z);
             int nearZ = (int)Math.ceil(z);
-            
+
             double zFraction = z - (double)farZ;
             double xFraction = x - (double)leftX;
-            
+
             double p1 = myAltitude[leftX][farZ] - (myAltitude[leftX][farZ] * zFraction) + (myAltitude[leftX][nearZ] * zFraction);
             double p2 = myAltitude[rightX][farZ] - (myAltitude[leftX][farZ] * zFraction) + (myAltitude[rightX][nearZ] * zFraction);
             altitude = p1 - (p1 * xFraction) + (p2 * xFraction);
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Array out of bounds - x: " + x + " out of " + myWidth + ", z: " + z + " out of " + myDepth);
         }
-        
+
         return altitude;
     }
 
     /**
-     * Add a tree at the specified (x,z) point. 
+     * Add a tree at the specified (x,z) point.
      * The tree's y coordinate is calculated from the altitude of the terrain at that point.
-     * 
+     *
      * @param x
      * @param z
      */
@@ -224,56 +218,55 @@ public class Terrain {
     }
 
     /**
-     * Add a road. 
-     * 
+     * Add a road.
+     *
      * @param width
      * @param spline
      */
     public void addRoad(double width, Point[] spline) {
         Road road = new Road(width, spline);
-        myRoads.add(road);        
+        myRoads.add(road);
     }
-    
+
     private void setCenter() {
         center = new Point(myWidth/2, altitude(myWidth/2, myDepth/2), myDepth/2);
     }
-    
+
     // Once the mesh has been generated, calculate the triangles so that on the draw call we do not have to do this.
     // Triangles are drawn counterclockwise so that the normals face the right way
     private void calculateTriangles() {
-        
         calculateTopTriangles();
         calculateBottomTriangles();
         calculateZTriangles();
         calculateXTriangles();
     }
-    
+
     private void calculateTopTriangles() {
-         // Save the triangles for the lumpy top terrain
-		for (int x = 0; x < myWidth; x++) {
-			for (int z = 0; z < myDepth; z++) {
+        // Save the triangles for the lumpy top terrain
+        for (int x = 0; x < myWidth; x++) {
+            for (int z = 0; z < myDepth; z++) {
                 // All grid squares are split into 2 triangles
-				Point bottomLeft = new Point(x, myAltitude[x][z+1], z+1);
-				Point topLeft = new Point(x, myAltitude[x][z], z);
-				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
+                Point bottomLeft = new Point(x, myAltitude[x][z+1], z+1);
+                Point topLeft = new Point(x, myAltitude[x][z], z);
+                Point topRight = new Point(x+1, myAltitude[x+1][z], z);
                 Point bottomRight = new Point(x+1, myAltitude[x+1][z+1], z+1);
-				
-				// Triangle 1 - top left, bottom left, bottom right
-				trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, TriangleFace.TOP));
+
+                // Triangle 1 - top left, bottom left, bottom right
+                trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, TriangleFace.TOP));
                 // Triangle 2 - bottom right, top right, top left
                 trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false, TriangleFace.TOP));
-                
+
                 faceNormals[x][z][0] = Helpers.calculateNormal(new Point[] {topLeft, bottomLeft, bottomRight});
                 faceNormals[x][z][1] = Helpers.calculateNormal(new Point[] {bottomRight, topRight, topLeft});
-			}
-    	}
-        
-       // Each vertex is the normalized sum of all face normals it is a vertex on.
+            }
+        }
+
+        // Each vertex is the normalized sum of all face normals it is a vertex on.
         // For most vertices they are on 8 triangles (there) are 4 squares they lie between, and 2 triangles to a square.
-    
+
         // Has to be + 1 because we do a -1 in there. But we restrict to be < myDepth
-		for (int x = 0; x < myWidth + 1; x++) {
-			for (int z = 0; z < myDepth + 1; z++) {
+        for (int x = 0; x < myWidth + 1; x++) {
+            for (int z = 0; z < myDepth + 1; z++) {
                 // TODO: Check array bounds max as well as min
                 Point normal = new Point();
                 // Top Left
@@ -287,7 +280,7 @@ public class Terrain {
                     normal.plus(faceNormals[x-1][z][1]);
                 }
                 // Bottom Left
-                if (x < myWidth && z > 0) { 
+                if (x < myWidth && z > 0) {
                     normal.plus(faceNormals[x][z-1][0]);
                     normal.plus(faceNormals[x][z-1][1]);
                 }
@@ -298,172 +291,166 @@ public class Terrain {
                 }
 
                 // TODO: Normalize???
-                vertexNormals[x][z] = normal;                
-			}
-    	}
+                vertexNormals[x][z] = normal;
+            }
+        }
     }
-    
+
     private void calculateBottomTriangles() {
-        // Save triangles for the flat bottom of the island
-		for (int x = 0; x < myWidth; x++) {
-			for (int z = 0; z < myDepth; z++) {
-				Point bottomLeft = new Point(x, baseHeight, z+1);
-				Point topLeft = new Point(x, baseHeight, z);
-				Point topRight = new Point(x+1, baseHeight, z);
+    // Save triangles for the flat bottom of the island
+        for (int x = 0; x < myWidth; x++) {
+            for (int z = 0; z < myDepth; z++) {
+                Point bottomLeft = new Point(x, baseHeight, z+1);
+                Point topLeft = new Point(x, baseHeight, z);
+                Point topRight = new Point(x+1, baseHeight, z);
                 Point bottomRight = new Point(x+1, baseHeight, z+1);
-                
+
                 // Clockwise so the normals point out the bottom
-				// Triangle 1
-				trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true, TriangleFace.BOTTOM));
+                // Triangle 1
+                trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true, TriangleFace.BOTTOM));
                 // Triangle 2
-                trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false, TriangleFace.BOTTOM));	
-			}
-		}
+                trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false, TriangleFace.BOTTOM));
+            }
+        }
     }
-    
+
     private void calculateXTriangles() {
         // TODO: Make this less hackish - better size squares etc
         // Draw the 2 island sides that are parallel with the x axis: x = 0 and x = width, with z = 0 -> depth
         int[] xSides = {0, myWidth};
-		for (int x : xSides) {
-		    for (int z = 0; z < myDepth; z++) {
-		        // When looking at it from the side, with 0,0 to your left
-				
-				Point bottomLeft = new Point(x, baseHeight, z);
-				Point topLeft = new Point(x, myAltitude[x][z], z);
-				Point topRight = new Point(x, myAltitude[x][z+1], z+1);
+        for (int x : xSides) {
+           for (int z = 0; z < myDepth; z++) {
+                // When looking at it from the side, with 0,0 to your left
+                Point bottomLeft = new Point(x, baseHeight, z);
+                Point topLeft = new Point(x, myAltitude[x][z], z);
+                Point topRight = new Point(x, myAltitude[x][z+1], z+1);
                 Point bottomRight = new Point(x, baseHeight, z+1);
-                
+
                 TriangleFace faceType;
                 if (x == 0) {
                     faceType = TriangleFace.XMIN;
                 } else {
                     faceType = TriangleFace.XMAX;
                 }
-                
-                // Triangle 1 - top left (0, alt, z), bottom left (0, 0, z), bottom right (0, 0, z+1)
+
                 trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, faceType));
-                // Triangle 2 - bottom right (0, 0, z+1), top right (0, alt, z+1), top left (0, alt, z)
                 trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false, faceType));
-			}
-		}
+            }
+        }
     }
-    
+
     private void calculateZTriangles() {
         // Draw the 2 island sides that are parallel with the z axis: z = 0 and z = depth, with x = 0 -> width
         int[] zSides = {0, myDepth};
-		for (int z : zSides) {
-		    for (int x = 0; x < myWidth; x++) {
-		        // When looking at it from the bottom, with 0, depth to your left
-				
-				Point bottomLeft = new Point(x, baseHeight, z);
-				Point topLeft = new Point(x, myAltitude[x][z], z);
-				Point topRight = new Point(x+1, myAltitude[x+1][z], z);
+        for (int z : zSides) {
+            for (int x = 0; x < myWidth; x++) {
+                // When looking at it from the bottom, with 0, 0 to your left
+                Point bottomLeft = new Point(x, baseHeight, z);
+                Point topLeft = new Point(x, myAltitude[x][z], z);
+                Point topRight = new Point(x+1, myAltitude[x+1][z], z);
                 Point bottomRight = new Point(x+1, baseHeight, z);
 
                 TriangleFace faceType;
                 if (z == 0) {
                     faceType = TriangleFace.ZMIN;
+                    trianglesToDraw.add(new Triangle(bottomRight, bottomLeft, topLeft, true, faceType));
+                    trianglesToDraw.add(new Triangle(topLeft, topRight, bottomRight, false, faceType));
                 } else {
                     faceType = TriangleFace.ZMAX;
+                    trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, faceType));
+                    trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false, faceType));
                 }
-
-                // Triangle 1 - top left (x, alt, depth), top right (x+1, alt, depth), bottom right (x+1, 0, depth)
-                trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, faceType));
-                // Triangle 2 - bottom right (x+1, 0, depth), bottom left (x, 0, depth), top left (x, alt, depth)
-                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false, faceType));
-                
-			}
-		}   
+            }
+        }
     }
-    
+
     private Point getNormal (Triangle t, Point position) {
         Point normal;
         switch(t.faceType) {
             case TOP:
-                normal = vertexNormals[(int)position.x][(int)position.z];
-                break;
+            normal = vertexNormals[(int)position.x][(int)position.z];
+            break;
             case BOTTOM:
-                normal = bottomVertexNormals;
-                break;
+            normal = bottomVertexNormals;
+            break;
             case XMIN:
-                normal = xMinVertexNormals;
-                break;
+            normal = xMinVertexNormals;
+            break;
             case XMAX:
-                normal = xMaxVertexNormals;
-                break;
+            normal = xMaxVertexNormals;
+            break;
             case ZMIN:
-                normal = zMinVertexNormals;
-                break;
+            normal = zMinVertexNormals;
+            break;
             case ZMAX:
-                normal = zMaxVertexNormals;
-                break;
+            normal = zMaxVertexNormals;
+            break;
             default:
-                System.out.println("eep something went wrong with triangle face type");
-                normal = new Point (0, 1, 0);
+            System.out.println("eep something went wrong with triangle face type");
+            normal = new Point (0, 1, 0);
         }
         return normal;
     }
 
     public void draw(GL2 gl) {
-        
+
         gl.glMatrixMode(gl.GL_MODELVIEW);
         gl.glEnable(gl.GL_CULL_FACE);
         gl.glCullFace(gl.GL_BACK);
-        
-    	gl.glPushMatrix();
 
-		gl.glPolygonMode(gl.GL_FRONT, gl.GL_FILL);
-    	gl.glPolygonOffset(0,0);
-		
-		if (texture) {
-			gl.glEnable(gl.GL_TEXTURE_2D);
-			myTexture = (Texture) Game.myTextures.get("grass");
-			if (myTexture != null) {
-		    	gl.glBindTexture(gl.GL_TEXTURE_2D, myTexture.getTextureID());
-		        // use the texture to modulate diffuse and ambient lighting
-		        gl.glTexEnvf(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
-			}
-			
-			gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
-			gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT);
-		}
-        
-		gl.glMaterialfv(gl.GL_FRONT, gl.GL_AMBIENT, Helpers.dayAmbient, 0);
-		gl.glMaterialfv(gl.GL_FRONT, gl.GL_DIFFUSE, Helpers.diffuse, 0);
+        gl.glPushMatrix();
+
+        gl.glPolygonMode(gl.GL_FRONT, gl.GL_FILL);
+        gl.glPolygonOffset(0,0);
+
+        if (texture) {
+            gl.glEnable(gl.GL_TEXTURE_2D);
+            myTexture = (Texture) Game.myTextures.get("grass");
+            if (myTexture != null) {
+                gl.glBindTexture(gl.GL_TEXTURE_2D, myTexture.getTextureID());
+                    // use the texture to modulate diffuse and ambient lighting
+                gl.glTexEnvf(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+            }
+
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
+            gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT);
+        }
+
+        gl.glMaterialfv(gl.GL_FRONT, gl.GL_AMBIENT, Helpers.dayAmbient, 0);
+        gl.glMaterialfv(gl.GL_FRONT, gl.GL_DIFFUSE, Helpers.diffuse, 0);
         gl.glMaterialf(gl.GL_FRONT, gl.GL_SHININESS, 10f);
 
-		gl.glBegin(GL2.GL_TRIANGLES);
-		// Draw each of our pre-calculated triangles
-		for (Triangle triangle : trianglesToDraw) {		
-			for (int i = 0; i < 3; i++) {
+        // Draw each of our pre-calculated triangles
+        gl.glBegin(GL2.GL_TRIANGLES);
+        for (Triangle triangle : trianglesToDraw) {
+            for (int i = 0; i < 3; i++) {
                 Point position = triangle.points[i];
                 Point normal = getNormal(triangle, position);
-                gl.glNormal3dv(normal.doubleVector(), 0);                
-				if (texture) {
-					gl.glTexCoord2d(triangle.textureCoords[i].x, triangle.textureCoords[i].y);
-				} else {
-					gl.glColor3dv(triangle.colors[i].doubleVector(), 0);
-				}
-				gl.glVertex3dv(position.doubleVector(), 0);
-			}
-		}		
-	    gl.glEnd();
-         
-	    if (texture) {
-	    	gl.glDisable(gl.GL_TEXTURE_2D);
-	    }
+                gl.glNormal3dv(normal.doubleVector(), 0);
+                if (texture) {
+                    gl.glTexCoord2d(triangle.textureCoords[i].x, triangle.textureCoords[i].y);
+                } else {
+                    gl.glColor3dv(triangle.colors[i].doubleVector(), 0);
+                }
+                gl.glVertex3dv(position.doubleVector(), 0);
+            }
+        }
+        gl.glEnd();
+
+        if (texture) {
+            gl.glDisable(gl.GL_TEXTURE_2D);
+        }
 
         for (Tree tree : myTrees) {
-        	tree.draw(gl, this);
+            tree.draw(gl, this);
         }
-        
+
         for (Road road : myRoads) {
-        	road.draw(gl, this);
+            road.draw(gl, this);
         }
-        
+
         gl.glDisable(gl.GL_CULL_FACE);
         gl.glPopMatrix();
-	
+
     }
 }

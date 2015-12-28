@@ -120,7 +120,7 @@ public class Cloud {
 		double y = 0;
 		double z = 0;
 		
-		while (Math.sqrt((x*x) + (y*y) + (z*z)) < Math.abs(20)) {
+		while (Math.sqrt((x*x) + (y*y) + (z*z)) < 20) {
 			x = min + (max - min) * r.nextDouble();
 			y = min + (max - min) * r.nextDouble();
 			z = min + (max - min) * r.nextDouble();

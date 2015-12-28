@@ -10,7 +10,7 @@ public class Person extends Sphere {
 	}
 	
 	public Person(double x, double y, double z) {
-		super(new Point(x, y  + 0.075, z), 0.15);	
+		super(new Point(x, y  + 0.076, z), 0.15);	
 	}	
 	
 	public void update(GL2 gl, PersonCamera cam, Terrain t) {

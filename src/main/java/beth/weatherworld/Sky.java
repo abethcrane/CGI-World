@@ -9,14 +9,14 @@ import com.jogamp.opengl.GL2;
 
 // Contains the sun, stars, clouds and rain
 public class Sky {
-	
+
     private List<Star> myStars;
     private List<Cloud> myClouds;
     public Sun mySun;
     private int numStars;
     private int numClouds;
     private Terrain myTerrain;
-    
+
 	public Sky (Terrain t) {
 		mySun = new Sun();
 		// References terrain to find altitudes
@@ -26,7 +26,7 @@ public class Sky {
         addStars();
         addClouds();
 	}
-	
+
 	// Adds some randomly positioned stars/planets
 	public void addStars() {
     	Random r = new Random();
@@ -51,7 +51,7 @@ public class Sky {
 
 	public void draw (GL2 gl) {
         mySun.draw(gl, myTerrain.getSunlight());
-		
+
         if (Game.day) {
         	int i = 0;
         	double numCloudsToDraw = (Game.fractionThroughDay > 0.5 ? (1 - Game.fractionThroughDay) * 2*numClouds : Game.fractionThroughDay * 2*numClouds);
@@ -59,13 +59,12 @@ public class Sky {
         	for (Cloud cloud : myClouds) {
         		if (i < numCloudsToDraw) {
         			cloud.update(gl);
-            		for (Raindrop drop : cloud.raindrops) { 
-            			drop.update(gl);
+            		for (Raindrop drop : cloud.raindrops) {
+            			//drop.update(gl);
             		}
             		i++;
         		}
 	        }
-        	
         } else {
         	int i = 0;
         	double numStarsToDraw = (Game.fractionThroughNight > 0.5 ? (1 - Game.fractionThroughNight) * 2*numStars : Game.fractionThroughNight * 2*numStars);

@@ -19,10 +19,10 @@ import com.jogamp.opengl.util.texture.TextureIO;
  */
 
 public class Texture {
-	
-	public static final boolean TEXTURE_MIPMAP_EANBLED = true; 
+
+	public static final boolean TEXTURE_MIPMAP_EANBLED = true;
 	int[] textureID = new int[1];
-	
+
 	public Texture(GLProfile glp, GL2 gl, String filename, String fileType) {
 		// Load the texture data from file to raw data in memory.
 		// Src: http://www.land-of-kain.de/docs/jogl/
@@ -45,7 +45,7 @@ public class Texture {
 			// Set texture parameters to enable automatic mipmap generation and bilinear filtering.
 			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
 	        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST);
-	        
+
 	        // Now build the texture (and generate mipmaps).
 	        GLU glu = new GLUgl2();
 	        glu.gluBuild2DMipmaps(GL.GL_TEXTURE_2D,
@@ -59,7 +59,7 @@ public class Texture {
 			// Set texture parameters to enable bilinear filtering.
 			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
 	        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-	        
+
 	        // Build texture initialised with image data.
 	        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0,
 	        				data.getInternalFormat(),
@@ -70,17 +70,17 @@ public class Texture {
 	        				data.getPixelType(),
 	        				data.getBuffer());
 		}
-        
+
 	}
-	
+
 	public Texture(GL2 gl, String filename, String fileType) {
 		this(GLProfile.getDefault(), gl, filename, fileType);
 	}
-	
+
 	public int getTextureID() {
 		return textureID[0];
 	}
-	
+
 	public void release(GL2 gl) {
 		if (textureID[0] > 0) {
 			gl.glDeleteTextures(1, textureID, 0);
