@@ -1,48 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-
+    <meta charset="UTF-8">
     <title>CGI World by abethcrane</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">CGI World</h1>
+      <h2 class="project-tagline">Computer Graphics program that takes in a json map and creates a world you can explore (complete with weather!)</h2>
+      <a href="https://github.com/abethcrane/Weatherworld" class="btn">View on GitHub</a>
+      <a href="https://github.com/abethcrane/Weatherworld/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/abethcrane/Weatherworld/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <header>
-      <div class="container">
-        <h1>CGI World</h1>
-        <h2>Computer Graphics program that takes in a json map and creates a world you can explore (complete with weather!)</h2>
-
-        <section id="downloads">
-          <a href="https://github.com/abethcrane/CGI-World/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/abethcrane/CGI-World/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/abethcrane/CGI-World" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
-
-    <div class="container">
-      <section id="main_content">
-        <h2>
-<a name="creation" class="anchor" href="#creation"><span class="octicon octicon-link"></span></a>Creation</h2>
+    <section class="main-content">
+      <h2>
+<a id="creation" class="anchor" href="#creation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creation</h2>
 
 <p>This project was written for a university course to gain an understanding of computer graphics. Exploring the daily cycles and the weather possibilities made the project more fun and visually attractive.</p>
 
 <h2>
-<a name="languages" class="anchor" href="#languages"><span class="octicon octicon-link"></span></a>Languages</h2>
+<a id="languages" class="anchor" href="#languages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Languages</h2>
 
 <p>CGI World is written in Java, making use of JOGL (OpenGL) for the graphics.</p>
 
 <h2>
-<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
 
 <h3>
-<a name="cameras" class="anchor" href="#cameras"><span class="octicon octicon-link"></span></a>Cameras</h3>
+<a id="cameras" class="anchor" href="#cameras" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Cameras</h3>
 
 <p>The world can be explored as an avatar or as a drone. Pressing p’ switches to the avatar (person mode) and ‘d’ switches the drone (drone mode).</p>
 
@@ -53,28 +44,36 @@
 <ul>
 <li>'s' zooms out, 'w' zooms in in drone mode, or tilts up and down in person mode.</li>
 <li>'.' increases the speed of the forward/zoom, and ',' slows it down.</li>
-</ul><h3>
-<a name="terrain" class="anchor" href="#terrain"><span class="octicon octicon-link"></span></a>Terrain</h3>
+</ul>
+
+<h3>
+<a id="terrain" class="anchor" href="#terrain" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Terrain</h3>
 
 <p>I've textured the terrain, although I prefer it with the colors. You can toggle between the two with 't'.</p>
 
 <h3>
-<a name="daynight-mode" class="anchor" href="#daynight-mode"><span class="octicon octicon-link"></span></a>Day/Night Mode</h3>
+<a id="daynight-mode" class="anchor" href="#daynight-mode" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Day/Night Mode</h3>
 
 <p>By default the sun will travel through the sky, causing a day and a night cycle. This mode can be toggled on and off at any point with the ’n’ key. When toggling it off the sun resets to the position from the passed in map.</p>
 
 <h3>
-<a name="trees" class="anchor" href="#trees"><span class="octicon octicon-link"></span></a>Trees</h3>
+<a id="trees" class="anchor" href="#trees" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Trees</h3>
 
 <p>The trees are designed to look to be reminiscent of Dr Seuss style trees, rather than a realistic representation.</p>
 
 <h2>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h2>
+<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h2>
 
 <p>This project was created solely by <a href="https://github.com/abethcrane" class="user-mention">@abethcrane</a> for UNSW’s COMP3421; Computer Graphics course in 2013. </p>
-      </section>
-    </div>
 
-    
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/abethcrane/Weatherworld">CGI World</a> is maintained by <a href="https://github.com/abethcrane">abethcrane</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
   </body>
 </html>
