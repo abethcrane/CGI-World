@@ -27,6 +27,7 @@ import beth.weatherworld.Texture;
 import beth.weatherworld.Triangle.TriangleFace;
 
 public class Terrain {
+    public Point[][][] faceNormals;
 
     private int myWidth;
     private int myDepth;
@@ -36,11 +37,10 @@ public class Terrain {
     private List<Road> myRoads;
     private Point mySunlight;
     static Point center;
-    Texture myTexture;
     public boolean texture = true;
 
     private List<Triangle> trianglesToDraw;
-    private Point[][][] faceNormals;
+    Texture myTexture;
     private Point[][] vertexNormals;
     private static Point bottomVertexNormals = new Point(0, -1, 0);
     private static Point xMinVertexNormals = new Point(-1, 0, 0);
@@ -72,6 +72,11 @@ public class Terrain {
         setCenter();
         setEdgeAltitudes();
         calculateTriangles();
+
+        for (Road road : myRoads)
+        {
+            road.initialize(this);
+        }
     }
 
     public int width() {
@@ -217,6 +222,11 @@ public class Terrain {
         myTrees.add(tree);
     }
 
+    public void removeTree(Tree t)
+    {
+        myTrees.remove(t);
+    }
+
     /**
      * Add a road.
      *
@@ -252,12 +262,16 @@ public class Terrain {
                 Point bottomRight = new Point(x+1, myAltitude[x+1][z+1], z+1);
 
                 // Triangle 1 - top left, bottom left, bottom right
-                trianglesToDraw.add(new Triangle(topLeft, bottomLeft, bottomRight, true, TriangleFace.TOP));
-                // Triangle 2 - bottom right, top right, top left
-                trianglesToDraw.add(new Triangle(bottomRight, topRight, topLeft, false, TriangleFace.TOP));
+                Triangle triangle1 = new Triangle(topLeft, bottomLeft, bottomRight, true, TriangleFace.TOP);
+                trianglesToDraw.add(triangle1);
 
-                faceNormals[x][z][0] = Helpers.calculateNormal(new Point[] {topLeft, bottomLeft, bottomRight});
-                faceNormals[x][z][1] = Helpers.calculateNormal(new Point[] {bottomRight, topRight, topLeft});
+                // Triangle 2 - bottom right, top right, top left
+                Triangle triangle2 = new Triangle(bottomRight, topRight, topLeft, false, TriangleFace.TOP);
+                trianglesToDraw.add(triangle2);
+
+                // Save off the normals for the triangle so that we can easily look these up by grid location
+                faceNormals[x][z][0] = triangle1.normal;
+                faceNormals[x][z][1] = triangle2.normal;
             }
         }
 
@@ -448,7 +462,7 @@ public class Terrain {
         }
 
         for (Road road : myRoads) {
-            road.draw(gl, this);
+            road.draw(gl);
         }
 
         gl.glDisable(gl.GL_CULL_FACE);

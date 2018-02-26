@@ -10,12 +10,13 @@ public class Triangle {
     public enum TriangleFace {
         TOP, BOTTOM, XMIN, XMAX, ZMIN, ZMAX
     }
-	
+
 	public Point[] points;
 	public Color[] colors;
 	public Coordinate[] textureCoords;
 	public TriangleFace faceType;
-	
+	public Point normal;
+
 	public Triangle (Point p1, Point p2, Point p3, boolean bottomLeft, TriangleFace type) {
 		points = new Point[3];
 		points[0] = p1;
@@ -27,7 +28,7 @@ public class Triangle {
 		colors[0] = new Color(p1.z/2, p1.x/2, p1.y/2);
 		colors[1] = new Color(p2.z/2, p2.x/2, p2.y/2);
 		colors[2] = new Color(p3.z/2, p3.x/2, p3.y/2);
-		
+
 		// We have to set the texture co-ords appropriately, depending on whether this triangle is top-left or bottom-right of the square (squares are split into 2 triangles)
 		textureCoords = new Coordinate[3];
 		if (bottomLeft) { // top left, bottom left, bottom right
@@ -39,7 +40,8 @@ public class Triangle {
 			textureCoords[1] = new Coordinate(1,1);
 			textureCoords[2] = new Coordinate(0,1);
 		}
-		
+
 		faceType = type;
+		normal = Helpers.calculateNormal(new Point[] {p1, p2, p3});
 	}
 }
