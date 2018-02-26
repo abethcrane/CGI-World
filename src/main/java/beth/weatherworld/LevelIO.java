@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.Math;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -74,6 +75,8 @@ public class LevelIO {
                     spline[j] = new Point(jsonSpline.getDouble(j), 0, jsonSpline.getDouble(j+1));
                 }
                 terrain.addRoad(w, spline);
+
+                flattenRoad(terrain, spline);
             }
         }
 
@@ -83,8 +86,8 @@ public class LevelIO {
     public static Terrain generate() {
         Random rand = new Random();
 
-        int width = rand.nextInt(20) + 3;
-        int depth = rand.nextInt(20) + 3;
+        int width = 5 + rand.nextInt(10) + rand.nextInt(20);
+        int depth = 5 + rand.nextInt(10) + rand.nextInt(20);
         Terrain terrain = new Terrain(width, depth);
 
         float dx = rand.nextInt();
@@ -108,20 +111,28 @@ public class LevelIO {
            }
         }
 
-        int numTrees = rand.nextInt(Math.max(1,width*depth/10));
-        for (int i = 0; i < numTrees; i++) {
-            double x = rand.nextDouble() * rand.nextInt(width-2) + 1;
-            double z = rand.nextDouble() * rand.nextInt(depth-2) + 1;
+        int numTrees = 3 + rand.nextInt(Math.max(1,width*depth/10));
+        for (int i = 0; i < numTrees; i++)
+        {
+            // In an attempt to space the trees out, we increment the starting point for our randomness
+
+            double x = i*rand.nextDouble() + rand.nextInt(width) + 1;
+            double z = i*rand.nextDouble() + rand.nextInt(depth) + 1;
+
+            x = Math.min(x, width);
+            z = Math.min(z, depth);
+
             terrain.addTree(x, z);
         }
 
-        boolean hasRoads = rand.nextBoolean();
+        // TODO: add something in where any trees on any of the grid cells around the roads are also 'flattened'
+
+        boolean hasRoads = true;//rand.nextBoolean();
         int numRoads = 1; // TODO: Make rand.nextInt(4);
         if (hasRoads) {
             for (int i = 0; i < numRoads; i++) {
-                double w = rand.nextDouble();
+                double w = 0.1 + rand.nextDouble() * 0.8;
 
-                // TODO: How many splines can a road have?
                 int splineLength = 4;
                 Point[] spline = new Point[splineLength];
 
@@ -132,9 +143,91 @@ public class LevelIO {
                 }
 
                 terrain.addRoad(w, spline);
+
+                flattenRoad(terrain, spline);
             }
         }
+
+        // TODO: calculate the grid cells that my road intersects
+        // and then, in each chunk, make it be the same height all across the road. 
+
         return terrain;
+    }
+
+    // TODO: I stole this from roads, let's not keep it here
+    /**
+     * Calculate the position of a point on a cubic bezier curve
+     * http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Cubic_B.C3.A9zier_curves
+     */
+    private static void flattenRoad(Terrain terrain, Point[] spline)
+    {
+        double tInt = 0.01;
+        int numPositions = (int)(1.0/tInt);
+        for (double t = 0; t < 1; t += tInt) {
+            Point currentPoint = new Point();
+
+            // Work out where the point is
+            Point temp = new Point(spline[0]);
+            temp.scalarMultiply(Math.pow((1-t), 3));
+            currentPoint.plus(temp);
+
+            temp = new Point(spline[1]);
+            temp.scalarMultiply(Math.pow((1-t), 2) * 3 * t);
+            currentPoint.plus(temp);
+
+            temp = new Point(spline[2]);
+            temp.scalarMultiply(Math.pow(t, 2) * 3 * (1-t));
+            currentPoint.plus(temp);
+
+            temp = new Point(spline[3]);
+            temp.scalarMultiply(Math.pow(t, 3));
+            currentPoint.plus(temp);
+
+            // Now flatten/raise the cells around the road to be whatever height the midpoint is
+            double altitude = terrain.altitude(currentPoint.x, currentPoint.z);
+            int floorX = (int)Math.floor(currentPoint.x);
+            int floorZ = (int)Math.floor(currentPoint.z);
+
+            int[] dx = {-1, 0, 1};
+            int[] dz = {-1, 0, 1};
+
+            for (int x : dx)
+            {
+                for (int z : dz)
+                {
+                    if (floorX + x >= 0 && floorX + x < terrain.width() && floorZ + z >= 0 && floorZ + z < terrain.depth())
+                    {
+                        terrain.setGridAltitude(floorX + x, floorZ + z, altitude);
+                        RemoveTreesInGridCell(terrain, new Point(floorX + x, 0, floorZ + z));
+                    }
+                }
+            }
+        }
+    }
+
+    private static void RemoveTreesInGridCell(Terrain terrain, Point p)
+    {
+        List<Tree> treesToRemove = new ArrayList<Tree>();
+        for (Tree t : terrain.trees())
+        {
+            int floorX = (int)Math.floor(t.getPosition()[0]);
+            int floorZ = (int)Math.floor(t.getPosition()[1]);
+
+            if (floorX == p.x && floorZ == p.z)
+            {
+                //System.out.println("Removing tree at: " + t.getPosition()[0] + ", " + t.getPosition()[1]);
+                treesToRemove.add(t);
+            }
+            else
+            {
+                //System.out.println("Tree at " + t.getPosition()[0] + ", " + t.getPosition()[1] + " is okay!");
+            }
+        }
+
+        for (Tree t : treesToRemove)
+        {
+            terrain.removeTree(t);
+        }
     }
 
     /**
